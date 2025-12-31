@@ -1,0 +1,28 @@
+%% Version: 1.2.0 (Authoritative 7D Integration Flow)
+flowchart LR
+    DEFINE --> DESIGN
+    DESIGN --> DEVELOP
+    DEVELOP --> DEBUG
+    DEBUG --> DOCUMENT
+    DOCUMENT --> DELIVER
+    DELIVER --> DEPLOY
+
+    subgraph stages [7D Agile Hierarchy]
+      DEFINE
+      DESIGN
+      DEVELOP
+      DEBUG
+      DOCUMENT
+      DELIVER
+      DEPLOY
+    end
+
+    %% Commander Authoritative Overlay
+    Cmd([The Commander]):::comm
+    Cmd -- "Start/Assign" --> DEFINE
+    Cmd -- "Enforce Protocol" --> DESIGN
+    Cmd -- "Orchestrate Tasks" --> DEVELOP
+    Cmd -- "Align Drift" --> DEBUG
+    Cmd -- "Commit to ZFS" --> DELIVER
+
+    classDef comm fill:#003366,color:#fff,stroke:#0099cc,stroke-width:2px;

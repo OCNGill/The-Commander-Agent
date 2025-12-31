@@ -1,0 +1,35 @@
+%% Version: 1.2.0 (Authoritative 7D Integration)
+%%{init: {"flowchart": {"nodeSpacing": 70, "rankSpacing": 100}} }%%
+
+flowchart TD
+  Commander([THE COMMANDER\nMeta-Orchestrator]):::comm
+
+  subgraph AgileLoop["7D Agile Protocol"]
+    direction TB
+    DEFINE[[DEFINE\nTask & Hierarchy]]
+    DESIGN[[DESIGN\nProtocol & Schema]]
+    DEVELOP[[DEVELOP\nWorker Tasking]]
+    DEBUG[[DEBUG\nDrift Alignment]]
+    DOCUMENT[[DOCUMENT\nMemory Imprint]]
+    DELIVER[[DELIVER\nGZIP Artifacts]]
+    DEPLOY[[DEPLOY\nCluster Release]]
+    
+    DEFINE --> DESIGN --> DEVELOP --> DEBUG --> DOCUMENT --> DELIVER --> DEPLOY
+  end
+
+  %% Commander Authoritative Links
+  Commander -- Initializer --> DEFINE
+  Commander -- Protocol Owner --> DESIGN
+  Commander -- Execution Hub --> DEVELOP
+  Commander -- Drift Correction --> DEBUG
+  Commander -- Traceability Witness --> DELIVER
+
+  %% Storage Context
+  Memory[(HTPC Storage Root)] :::storage
+  Memory -.-> DOCUMENT
+  Memory -.-> DELIVER
+
+  classDef comm fill:#003366,color:#fff,stroke:#0099cc,stroke-width:2px;
+  classDef storage fill:#006633,color:#fff,stroke:#00cc66,stroke-width:2px;
+  class Commander comm;
+  class Memory storage;

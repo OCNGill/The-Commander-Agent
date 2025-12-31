@@ -1,67 +1,86 @@
 # The-Commander: AI Agent Operating System
 
-**The-Commander** is a distributed orchestrator for managing a cluster of heterogeneous AI agents. It centralizes state, memory, and task lifecycle management while allowing decentralized execution across multiple compute nodes.
+**The-Commander** is a distributed orchestrator for managing a cluster of heterogeneous AI agents. It centralizes state, memory, and task lifecycle management while allowing decentralized execution across specific compute nodes.
 
 ---
 
-## **Architecture Overview**
+## **Architectural Topology**
 
-The-Commander follows a strict generic protocol where a central "Commander" meta-agent directs subordinate agents (Architect, Coder, Reasoner, Synthesizer) to achieve complex goals.
+The system is designed for a multi-node worker topology with a central storage and relay authority.
 
-### **Cluster Topology (Authoritative)**
+| Node | Network Address | Role | Description |
+|------|-----------------|------|-------------|
+| **Main** | `http://10.0.0.164:8000/` | Orchestrator | Runs The Commander; controls system/node/agent lifecycle. |
+| **HTPC** | `http://10.0.0.42:8001/` | Storage/Relay | Central dataset authority and message relay hub. |
+| **Laptop** | `http://10.0.0.93:8002/` | Worker | Worker node running model servers and agents. |
+| **SteamDeck** | `http://10.0.0.139:8003/` | Worker | Auxiliary worker node. |
 
-| Node | IP | Role | Description |
-|------|----|------|-------------|
-| **Main** | `10.0.0.164:8000` | Orchestrator | Runs the core System Manager and Commander logic. |
-| **HTPC** | `10.0.0.42:8001` | Relay/Storage | Central message relay and ZFS persistent storage (`/gillsystems_zfs_pool/AI_storage`). |
-| **Laptop** | `10.0.0.93:8002` | Worker | Local compute node. |
-| **SteamDeck** | `10.0.0.139:8003` | Worker | Auxiliary compute node. |
-
----
-
-## **Quick Start (Developer Mode)**
-
-### **Prerequisites**
-- Python 3.10+
-- `pip install -r requirements.txt` (or manually: `fastapi uvicorn textual httpx sqlalchemy pyyaml pydantic`)
-
-### **Running Tests**
-Verify the integrity of the Protocol Layer and Core Managers:
-```bash
-python -m pytest tests/ -v
-```
-
-### **Manual Launch (API)**
-To start the Main Node REST Interface:
-```bash
-uvicorn commander_os.interfaces.rest_api:app --host 0.0.0.0 --port 8000
-```
+### **Authoritative Storage (ZFS)**
+The HTPC node hosts the only dataset used by the system:
+- **Mountpoint:** `/gillsystems_zfs_pool/AI_storage`
+- **Structure:** `/logs`, `/artifacts`, `/checkpoints`, `/memory`, `/relay`, `/agents`.
 
 ---
 
-## **Project Structure**
+## **The Commander Protocol Layer**
 
-```
-The-Commander-Agent/
-├── commander_os/
-│   ├── core/              # Core Logic
-│   │   ├── system_manager.py  # Orchestrator
-│   │   ├── protocol.py        # Comm Standard (Envelopes, Tasks)
-│   │   ├── memory.py          # SQLite/ZFS Storage
-│   │   └── ...
-│   └── interfaces/        # External Access
-│       └── rest_api.py        # FastAPI Headers
-├── config/
-│   ├── relay.yaml         # Topology Config
-│   └── roles.yaml         # Agent Hierarchy
-└── tests/                 # 100% Coverage Test Suite
-```
+Communication within the cluster is governed by the **Commander Protocol**, a strict message/task envelope system that prevents architectural drift.
 
-## **Status (v1.2.0)**
-- **Phase 1-3 Complete**: Core Managers, Memory, API.
-- **Current Focus**: Protocol Layer Integration.
-- **Paused**: TUI / Web GUI / Launchers.
+- **The Commander:** The authoritative initializer and orchestrator meta-agent.
+- **Hierarchy:** Commander -> Architect -> Coder/Reasoner -> Synthesizer.
+- **Protocol Envelopes:** Every message is wrapped in a `MessageEnvelope` (UUID, Timestamp, Sender/Recipient, Task ID, Priority, Payload).
 
 ---
 
-*Property of Gillsystems.*
+## **Extensible Memory System**
+
+The-Commander utilizes an extensible persistent memory system backed by SQLite via SQLAlchemy.
+
+- **Flexibility:** The schema includes a `metadata_json` column for storing arbitrary agent state or task context without requiring frequent migrations.
+- **Efficiency:** Message content is GZIP compressed at rest.
+- **Searchable:** Full indices on Task ID, Sender, and Content Hash (SHA-256) for deduplication.
+
+---
+
+## **Flow Diagram**
+
+```mermaid
+graph TD
+    subgraph Gillsystems-Main [10.0.0.164:8000]
+        C[The Commander] --> SM[System Manager]
+    end
+
+    subgraph HTPC [10.0.0.42:8001]
+        R[Relay Server]
+        M[Persistent Memory / SQLite]
+        Z[(ZFS Dataset / AI_storage)]
+    end
+
+    subgraph Workers [Laptop/SteamDeck]
+        A1[Agent 1 - Coder]
+        A2[Agent 2 - Reasoner]
+    end
+
+    C -- Orchestrates --> SM
+    SM -- Enforces Protocol --> R
+    A1 -- Routes via --> R
+    R -- Commits to --> M
+    M -- Persists on --> Z
+    C -- Retrieves Task History --> M
+```
+
+---
+
+## **Quick Start**
+
+1. **Bootstrap Core Managers:**
+   ```bash
+   # System starts by loading relay.yaml/roles.yaml from HTPC root
+   uvicorn commander_os.interfaces.rest_api:app --port 8000
+   ```
+2. **Execute Tests:**
+   ```bash
+   python -m pytest tests/ -v
+   ```
+
+*Property of Gillsystems. Stay aligned.*

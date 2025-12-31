@@ -6,16 +6,16 @@ Purpose
 
 Filename convention
 - Use the pattern: <name>_v<MAJOR>.<MINOR>.<PATCH>.mmd
-  - Example: role_architecture_v1.0.0.mmd
+  - Example: role_architecture_v1.2.0.mmd
 
 Embedding version metadata
 - Each versioned diagram SHOULD include a header at the top with metadata:
-  - %% Version: 1.0.0
+  - %% Version: 1.2.0
   - %% Source: <original-filename>
   - Optionally: %% Author, %% Date
 
 Creating a new version (recommended workflow)
-1. Copy the latest file to a new filename with a bumped semantic version (e.g., v1.0.1).
+1. Copy the latest file to a new filename with a bumped semantic version (e.g., v1.2.1).
 2. Update the header metadata inside the new file (Version, Date, Change summary).
 3. Validate the Mermaid syntax (tools or mermaid-diagram-validator).
 4. Commit the new file to the repository (do NOT modify or delete prior versions unless intentionally archiving).
@@ -38,9 +38,9 @@ def bump_patch_version(filename: Path) -> Path:
 
 # Usage example (manual):
 # from pathlib import Path
-# src = Path('role_architecture_v1.0.0.mmd')
+# src = Path('role_architecture_v1.2.0.mmd')
 # dst = bump_patch_version(src)
-# dst.write_text(src.read_text().replace('Version: 1.0.0','Version: 1.0.1'))
+# dst.write_text(src.read_text().replace('Version: 1.2.0','Version: 1.2.1'))
 ```
 
 Notes

@@ -1,0 +1,37 @@
+%% Version: 1.2.0 (Authoritative Local-Only Policy)
+%% Multi-Node Cluster with HTPC ZFS Root
+
+flowchart TB
+    subgraph GillsystemsCluster[Gillsystems Local-Only Cluster]
+      direction TB
+      
+      subgraph Orchestration[Main Node: 10.0.0.164]
+        commander[The Commander]
+      end
+
+      subgraph Execution[Worker Nodes: Laptop / SteamDeck]
+        nodeL[Laptop Node: 10.0.0.93]
+        nodeS[Steam Deck Node: 10.0.0.139]
+      end
+
+      subgraph CoreServices[HTPC: 10.0.0.42]
+        relay[Message Relay Hub]
+        memory[(HTPC Storage Root\n/gillsystems_zfs_pool/AI_storage)]
+      end
+    end
+
+    %% Communication Flow
+    commander --> relay
+    relay <--> nodeL
+    relay <--> nodeS
+    
+    %% Storage Flow
+    nodeL -.-> memory
+    nodeS -.-> memory
+    relay --> memory
+
+    %% Policy Enforcement
+    LocalPolicy([EXCLUSIVE LOCAL EXECUTION]) :::policy
+    LocalPolicy -.-> GillsystemsCluster
+
+    classDef policy fill:#f00,color:#fff,stroke:#000,stroke-width:4px;

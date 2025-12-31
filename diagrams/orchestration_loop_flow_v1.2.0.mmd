@@ -1,0 +1,33 @@
+%% Version: 1.2.0 (Authoritative Orchestration Loop)
+%% Commander Protocol Enforcement & Drift Prevention
+
+flowchart TB
+    Start([Task Defined by Commander]) --> ProtocolCheck{Protocol Check}
+    
+    ProtocolCheck -- Valid --> Decompose[Decompose & Assign Roles]
+    ProtocolCheck -- Invalid --> Error([Protocol Violation Error])
+    
+    Decompose --> Enveloping[Standard Enveloping & Task Binding]
+    Enveloping --> Distribute[Distribute to Cluster Nodes]
+    
+    Distribute --> Monitoring{Drift Monitoring}
+    
+    Monitoring -- On Target --> Collect[Collect Multi-Agent Responses]
+    Monitoring -- Drift Detected --> Align[Commander: Snap-Back Alignment]
+    Align --> Distribute
+
+    Collect --> Validation{Logic Validation}
+    
+    Validation -- Fail --> Iterate[Commander: Context Injection & Retry]
+    Iterate --> Distribute
+    
+    Validation -- Success --> Synthesize[Synthesize & GZIP Commit]
+    
+    Synthesize --> Memory[(HTPC Persistent Memory / ZFS)]
+    Memory --> End([Final Delivery & Traceability Audit])
+
+    classDef commander fill:#003366,color:#fff,stroke:#0099cc,stroke-width:2px;
+    classDef storage fill:#006633,color:#fff,stroke:#00cc66,stroke-width:2px;
+    
+    class Start,ProtocolCheck,Align,Iterate,End commander;
+    class Memory storage;

@@ -1,4 +1,6 @@
-%% Role-Based Architecture (v1.2.0 Authoritative)
+%% Version: 1.2.0 (Authoritative Protocol Layer)
+%% Role-Based Architecture with Commander Priority
+
 classDiagram
     direction TB
 
@@ -9,6 +11,7 @@ classDiagram
         +injectContext(taskId)
         +enforceProtocol()
         +preventDrift()
+        +authorizeLifecycle()
     }
 
     class Architect {
@@ -40,6 +43,16 @@ classDiagram
     Commander --> Coder : Directs
     Commander --> Reasoner : Directs
     Commander --> Synthesizer : Directs
+
+    Architect ..> Coder : Context Spec
+    Architect ..> Reasoner : Analysis Req
+    Coder --|> Synthesizer : Artifacts
+    Reasoner --|> Synthesizer : Validation
+
+    %% Commander is the shared authority point
+    subgraph Authority
+        Commander
+    end
 
     note for Commander "Authoritative initializer; enforces protocol and prevents architectural drift"
     note for Architect "System design and task decomposition"

@@ -1,0 +1,39 @@
+%% Version: 1.2.0 (Commander Protocol Layer)
+%% Multi-Node Collaboration & Storage Logic
+
+sequenceDiagram
+    autonumber
+    participant Cmd as The Commander (Main Node)
+    participant Relay as Relay Server (HTPC)
+    participant Worker as Worker Nodes (Laptop/SteamDeck)
+    participant Memory as HTPC Memory (ZFS)
+
+    Note over Cmd, Memory: System Bootstrap (Gillsystems-Main)
+
+    Cmd->>Relay: [COMMAND] Initialize Task
+    Relay->>Memory: Log Task Definition
+    
+    Cmd->>Relay: [ENVELOPE] Assign Role: Architect
+    Relay->>Worker: Route Task to Architect
+    
+    Worker-->>Relay: [RESPONSE] Structural Design
+    Relay->>Memory: Commit GZIP blob + Hash
+    Relay-->>Cmd: Notify: Design Ready
+    
+    Cmd->>Relay: [ENVELOPE] Assign Role: Coder
+    Relay->>Worker: Route Spec to Coder
+    
+    Worker-->>Relay: [RESPONSE] Code Artifacts
+    Relay->>Memory: Store Artifact Metadata
+    Relay-->>Cmd: Notify: Code Complete
+    
+    Cmd->>Relay: [QUERY] Get Comprehensive Context
+    Relay->>Memory: Search Task ID: X
+    Memory-->>Relay: Retrieval (Unzipped)
+    Relay-->>Cmd: Context Injection (Final)
+    
+    Cmd->>Cmd: Synthesize & Finalize
+    Cmd->>Relay: [EVENT] System Shutdown
+    Relay->>Memory: Audit Trail Finalized
+    
+    Note over Cmd, Worker: Commander enforces protocol & prevents architectural drift
