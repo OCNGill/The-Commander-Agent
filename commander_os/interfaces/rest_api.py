@@ -12,6 +12,7 @@ from typing import List, Dict, Any, Optional
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Body, Query, status
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from commander_os.core.system_manager import SystemManager
@@ -54,6 +55,15 @@ app = FastAPI(
     version="1.1.0",
     description="Control interface for The-Commander AI Agent Operating System",
     lifespan=lifespan
+)
+
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For local development; narrow this in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # -------------------------------------------------------------------------
@@ -116,10 +126,24 @@ async def list_nodes():
     """List all registered nodes."""
     if not system:
         raise HTTPException(status_code=503, detail="System not initialized")
-    
-    # Retrieve from StateManager via NodeManager or directly
-    # Using StateManager directly is valid for read-only status
-    return [n.to_dict() for n in system.state_manager.get_all_nodes()]
+
+    nodes = []
+    for node_state in system.state_manager.get_all_nodes():
+        node_id = node_state.node_id
+        config = system.config_manager.get_node(node_id)
+        
+        node_data = node_state.to_dict()
+        if config:
+            # Add static metadata for the GUI
+            node_data['name'] = config.name
+            node_data['tps_benchmark'] = config.tps_benchmark
+            if config.engine:
+                node_data['model_file'] = config.engine.model_file
+                node_data['ctx'] = config.engine.ctx
+                node_data['ngl'] = config.engine.ngl
+                
+        nodes.append(node_data)
+    return nodes
 
 @app.get("/nodes/{node_id}/status")
 async def get_node_status(node_id: str):

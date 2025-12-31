@@ -27,7 +27,8 @@
 *Objective: Transform the OS into a graphical Command & Control center.*
 
 - [x] **React/Vite Infrastructure**: Modern web dashboard foundation built with tactical design system.
-- [ ] **Backend Integration**: Connecting the GUI to the SystemManager REST API.
+- [x] **Backend Integration**: Connected the GUI to the SystemManager REST API via tactical `CommanderAPI` client.
+- [ ] **Real-time WebSockets**: Streaming node health and logs to the browser.
 - [ ] **Dynamic Hardware Dials**: Real-time adjustment of Context (`-c`) and NGL (`-ngl`) per node.
 - [ ] **Strategic Model Selector**: Remote file browser to locate and swap `.gguf` files in the `model_root_path`.
 - [ ] **Binary Authority Control**: Graphical selection/renaming of backend binaries (e.g., `go.exe` vs `llama-server.exe`).

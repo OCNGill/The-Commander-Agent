@@ -2,43 +2,37 @@ import React from 'react';
 import { Terminal } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const MOCK_TRAFFIC = [
-    { ts: '16:04:10', sender: 'commander', role: 'coder', msg: 'Initiating code refactor for Phase 6...' },
-    { ts: '16:04:12', sender: 'coder', role: 'main', msg: 'Analyzing existing architecture...' },
-    { ts: '16:04:15', sender: 'htpc', role: 'memory', msg: 'Committed state checkpoint to ZFS.' },
-    { ts: '16:04:18', sender: 'steamdeck', role: 'worker', msg: 'Benchmarking local weights: 30 t/s.' },
-    { ts: '16:04:22', sender: 'laptop', role: 'interface', msg: 'War Room Web UI synchronized.' },
-];
+const TerminalLog = ({ data = [] }) => {
+  return (
+    <div className="terminal-panel panel-container">
+      <div className="panel-header strategic-border">
+        <div className="flex items-center gap-2">
+          <Terminal size={18} />
+          <h3>STRATEGIC INTELLIGENCE STREAM</h3>
+        </div>
+      </div>
+      <div className="terminal-content">
+        {data.map((log, i) => {
+          const ts = new Date(log.timestamp * 1000).toLocaleTimeString();
+          return (
+            <motion.div
+              key={log.id || i}
+              initial={{ opacity: 0, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="log-entry"
+            >
+              <span className="log-ts">[{ts}]</span>
+              <span className="log-sender">{log.sender}</span>
+              <span className="log-arrow">{"->"}</span>
+              <span className="log-role">{log.role}:</span>
+              <span className="log-msg">{log.content}</span>
+            </motion.div>
+          );
+        })}
+        <div className="cursor-blink">_</div>
+      </div>
 
-const TerminalLog = () => {
-    return (
-        <div className="terminal-panel panel-container">
-            <div className="panel-header strategic-border">
-                <div className="flex items-center gap-2">
-                    <Terminal size={18} />
-                    <h3>STRATEGIC INTELLIGENCE STREAM</h3>
-                </div>
-            </div>
-            <div className="terminal-content">
-                {MOCK_TRAFFIC.map((log, i) => (
-                    <motion.div
-                        key={i}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className="log-entry"
-                    >
-                        <span className="log-ts">[{log.ts}]</span>
-                        <span className="log-sender">{log.sender}</span>
-                        <span className="log-arrow">{"->"}</span>
-                        <span className="log-role">{log.role}:</span>
-                        <span className="log-msg">{log.msg}</span>
-                    </motion.div>
-                ))}
-                <div className="cursor-blink">_</div>
-            </div>
-
-            <style jsx>{`
+      <style jsx>{`
         .terminal-panel {
           flex: 1;
           display: flex;
@@ -72,8 +66,8 @@ const TerminalLog = () => {
         }
         @keyframes blink { to { visibility: hidden; } }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };
 
 export default TerminalLog;

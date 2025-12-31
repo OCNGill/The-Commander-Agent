@@ -1,21 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, Activity, Database, Cpu, Layout, Power, RefreshCw, Terminal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { api } from './api/commander-api';
 import TerminalLog from './components/TerminalLog';
 import './App.css';
 
-// Mock Data representative of Gillsystems Topology
-const MOCK_NODES = [
-  { id: 'node-main', name: 'Gillsystems-Main', hardware: '7900XTX', status: 'ready', tps: 130, model: 'Qwen3-Coder-25B', ctx: 131072, ngl: 999 },
-  { id: 'node-htpc', name: 'Gillsystems-HTPC', hardware: '7600', status: 'ready', tps: 60, model: 'Granite-4.0-h-tiny', ctx: 114688, ngl: 40 },
-  { id: 'node-steamdeck', name: 'Steam Deck Node', hardware: 'Custom APU', status: 'ready', tps: 30, model: 'Granite-4.0-h-tiny', ctx: 21844, ngl: 32 },
-  { id: 'node-laptop', name: 'Laptop Node', hardware: 'Integrated', status: 'offline', tps: 9, model: 'Granite-4.0-h-tiny', ctx: 21844, ngl: 999 },
-];
-
 function App() {
-  const [nodes, setNodes] = useState(MOCK_NODES);
+  const [nodes, setNodes] = useState([]);
+  const [agents, setAgents] = useState([]);
+  const [systemStatus, setSystemStatus] = useState('stopped');
   const [selectedNode, setSelectedNode] = useState(null);
-  const [isIgnited, setIsIgnited] = useState(false);
+  const [traffic, setTraffic] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Poll for status every 2 seconds
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const status = await api.getSystemStatus();
+        setSystemStatus(status.system.status);
+
+        // Match our node config with state
+        const nodeList = await api.listNodes();
+        setNodes(nodeList);
+
+        const agentList = await api.listAgents();
+        setAgents(agentList);
+
+        const logs = await api.queryMemory(15);
+        setTraffic(logs);
+      } catch (err) {
+        console.error("Cluster connection failed:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleIgnite = async () => {
+    try {
+      if (systemStatus === 'running') {
+        await api.stopSystem();
+      } else {
+        await api.startSystem();
+      }
+    } catch (err) {
+      alert("Ignition sequence failure: " + err.message);
+    }
+  };
+
+  const isIgnited = systemStatus === 'running';
 
   return (
     <div className="war-room-root">
@@ -36,7 +74,7 @@ function App() {
           </div>
           <button
             className={`ignite-button ${isIgnited ? 'active' : ''}`}
-            onClick={() => setIsIgnited(!isIgnited)}
+            onClick={handleIgnite}
           >
             <Power size={18} />
             {isIgnited ? 'SYSTEM ARMED' : 'IGNITE CLUSTER'}
@@ -54,43 +92,43 @@ function App() {
           <div className="nodes-container">
             {nodes.map(node => (
               <motion.div
-                key={node.id}
-                className={`node-card ${selectedNode?.id === node.id ? 'active' : ''}`}
+                key={node.node_id}
+                className={`node-card ${selectedNode?.node_id === node.node_id ? 'active' : ''}`}
                 whileHover={{ scale: 1.02 }}
                 onClick={() => setSelectedNode(node)}
               >
                 <div className="node-info">
                   <div className="node-top">
-                    <span className="node-name">{node.name}</span>
+                    <span className="node-name">{node.name || node.node_id}</span>
                     <span className={`status-badge ${node.status}`}>{node.status}</span>
                   </div>
                   <div className="node-hardware">
                     <Cpu size={14} />
-                    <span>{node.hardware} // {node.tps} t/s</span>
+                    <span>{node.resources.gpu || 'Default Hardware'} // {node.tps_benchmark || 0} t/s</span>
                   </div>
                 </div>
                 <div className="node-gauge">
-                  <div className={`gauge-fill ${node.status}`} style={{ width: `${(node.tps / 130) * 100}%` }}></div>
+                  <div className={`gauge-fill ${node.status}`} style={{ width: `${(node.tps_benchmark / 130) * 100}%` }}></div>
                 </div>
               </motion.div>
             ))}
           </div>
 
-          <TerminalLog />
+          <TerminalLog data={traffic} />
         </section>
 
         <section className="control-section">
           <AnimatePresence mode="wait">
             {selectedNode ? (
               <motion.div
-                key={selectedNode.id}
+                key={selectedNode.node_id}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 className="control-panel panel-container"
               >
                 <div className="panel-header strategic-border">
-                  <h3>NODE CONTROL: {selectedNode.name}</h3>
+                  <h3>NODE CONTROL: {selectedNode.name || selectedNode.node_id}</h3>
                 </div>
 
                 <div className="control-groups">
@@ -99,11 +137,11 @@ function App() {
                     <div className="input-grid">
                       <div className="input-box">
                         <span>CONTEXT SIZE</span>
-                        <input type="number" defaultValue={selectedNode.ctx} />
+                        <input type="number" defaultValue={selectedNode.ctx || 4096} />
                       </div>
                       <div className="input-box">
                         <span>GPU LAYERS (NGL)</span>
-                        <input type="number" defaultValue={selectedNode.ngl} />
+                        <input type="number" defaultValue={selectedNode.ngl || 32} />
                       </div>
                     </div>
                   </div>
@@ -112,7 +150,7 @@ function App() {
                     <label>MODEL ARMORY</label>
                     <div className="model-selector">
                       <Database size={18} />
-                      <span>{selectedNode.model}.gguf</span>
+                      <span>{selectedNode.model_file || 'No Model Loaded'}.gguf</span>
                       <RefreshCw size={14} className="spin-hover" />
                     </div>
                   </div>

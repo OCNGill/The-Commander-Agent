@@ -23,6 +23,7 @@ from commander_os.core.config_manager import ConfigManager
 from commander_os.core.state import StateManager, SystemStatus
 from commander_os.core.node_manager import NodeManager
 from commander_os.core.agent_manager import AgentManager
+from commander_os.core.memory import MessageStore
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +57,10 @@ class SystemManager:
             self.state_manager, 
             local_node_id=self.local_node_id
         )
+        
+        # 3. Initialize Memory Store
+        db_path = os.getenv("COMMANDER_DB_URL", "sqlite:///commander_memory.db")
+        self.memory_store = MessageStore(db_path)
         
         self.relay_process: Optional[subprocess.Popen] = None
         self.engine_process: Optional[subprocess.Popen] = None
