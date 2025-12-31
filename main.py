@@ -78,5 +78,14 @@ def war_room(node):
     except KeyboardInterrupt:
         sm.stop_system()
 
+@cli.command(name="war-room-web")
+@click.option('--host', default='0.0.0.0', help='Host to bind API.')
+@click.option('--port', default=8000, help='Port to bind API.')
+def war_room_web(host, port):
+    """(WAR-ROOM-WEB) Start the Strategic REST API & Web Dashboard."""
+    import uvicorn
+    click.echo(f"Activating Web War Room on {host}:{port}...")
+    uvicorn.run("commander_os.interfaces.rest_api:app", host=host, port=port, reload=True)
+
 if __name__ == "__main__":
     cli()

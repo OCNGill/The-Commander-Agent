@@ -72,6 +72,26 @@ class CommanderAPI {
         if (!response.ok) throw new Error('Failed to search memory');
         return response.json();
     }
+
+    /**
+   * Subscribe to real-time tactical updates via WebSockets.
+   */
+    subscribe(onUpdate) {
+        const wsUrl = API_BASE_URL.replace('http', 'ws') + '/ws/stream';
+        const socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => console.log("Tactics initialized: WebSocket Connected.");
+        socket.onmessage = (event) => {
+            const packet = JSON.parse(event.data);
+            onUpdate(packet);
+        };
+        socket.onclose = () => {
+            console.warn("Tactical link lost. Reconnecting in 5s...");
+            setTimeout(() => this.subscribe(onUpdate), 5000);
+        };
+
+        return socket;
+    }
 }
 
 export const api = new CommanderAPI();

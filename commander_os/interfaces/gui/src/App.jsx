@@ -13,32 +13,49 @@ function App() {
   const [traffic, setTraffic] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Poll for status every 2 seconds
+  // Subscribe to real-time updates
   useEffect(() => {
-    const fetchData = async () => {
+    // Initial fetch to populate state
+    const fetchInitial = async () => {
       try {
-        const status = await api.getSystemStatus();
-        setSystemStatus(status.system.status);
-
-        // Match our node config with state
         const nodeList = await api.listNodes();
         setNodes(nodeList);
-
-        const agentList = await api.listAgents();
+        const agentList = await api.listAgents(); // Fetch agents initially
         setAgents(agentList);
-
         const logs = await api.queryMemory(15);
         setTraffic(logs);
       } catch (err) {
-        console.error("Cluster connection failed:", err);
+        console.error("Initial fetch failed:", err);
       } finally {
-        setLoading(false);
+        setLoading(false); // Ensure loading is set to false after initial fetch
       }
     };
+    fetchInitial();
 
-    fetchData();
-    const interval = setInterval(fetchData, 2000);
-    return () => clearInterval(interval);
+    // Establish tactical WebSocket link
+    const socket = api.subscribe((packet) => {
+      if (packet.type === 'state_update') {
+        const snapshot = packet.data;
+        setSystemStatus(snapshot.system.status);
+
+        // Match nodes with config overlay (we still need listNodes for the name/bench overlay)
+        // or we could push the full merged config in state_update. 
+        // For now, let's keep it simple and just update the status from snapshot.
+        setNodes(prev => prev.map(n => {
+          const match = Object.values(snapshot.nodes).find(sn => sn.node_id === n.node_id);
+          return match ? { ...n, status: match.status } : n;
+        }));
+        // Update agents if they are part of the state_update
+        if (snapshot.agents) {
+          setAgents(snapshot.agents);
+        }
+      } else if (packet.type === 'new_messages') {
+        // Prepend new messages to the log stream
+        setTraffic(prev => [...packet.data.reverse(), ...prev].slice(0, 50));
+      }
+    });
+
+    return () => socket.close();
   }, []);
 
   const handleIgnite = async () => {

@@ -10,8 +10,9 @@ Version: 1.1.0
 import logging
 from typing import List, Dict, Any, Optional
 from contextlib import asynccontextmanager
+import asyncio
 
-from fastapi import FastAPI, HTTPException, Body, Query, status
+from fastapi import FastAPI, HTTPException, Body, Query, status, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -42,10 +43,18 @@ async def lifespan(app: FastAPI):
     if not system.bootstrap():
         logger.error("Failed to bootstrap system during API startup")
     
+    # Start Tactical Broadcaster
+    broadcast_task = asyncio.create_task(tactical_broadcaster())
+    
     yield
     
     # Cleanup on shutdown
     logger.info("Shutting down REST API...")
+    broadcast_task.cancel()
+    try:
+        await broadcast_task
+    except asyncio.CancelledError:
+        pass
     if system and system.state_manager.system_status != SystemStatus.STOPPED:
         system.stop_system()
 
@@ -65,6 +74,85 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# -------------------------------------------------------------------------
+# WebSocket Connection Manager
+# -------------------------------------------------------------------------
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
+
+    async def contract(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        logger.info(f"New Strategic GUI tactical link established. Total: {len(self.active_connections)}")
+
+    def sever(self, websocket: WebSocket):
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
+            logger.info(f"Tactical link severed. Active remaining: {len(self.active_connections)}")
+
+    async def broadcast(self, message: Dict[str, Any]):
+        """Broadcast intelligence packet to all active command consoles."""
+        for connection in self.active_connections:
+            try:
+                await connection.send_json(message)
+            except Exception as e:
+                logger.error(f"Failed to broadcast to tactical link: {e}")
+
+manager = ConnectionManager()
+
+async def tactical_broadcaster():
+    """
+    Background task to push real-time updates to focused command consoles.
+    Monitors state changes and new memory entries.
+    """
+    last_msg_id = 0
+    logger.info("Tactical Broadcaster online.")
+    
+    # Initialize last_msg_id to current max to avoid flood on restart
+    if system and hasattr(system, 'memory_store'):
+        try:
+            recent = system.memory_store.query_messages(limit=1)
+            if recent:
+                last_msg_id = recent[0]['id']
+        except Exception as e:
+            logger.warning(f"Tactical Broadcaster failed initial memory check: {e}")
+
+    while True:
+        try:
+            if not manager.active_connections:
+                await asyncio.sleep(2)  # Low power mode when no one is watching
+                continue
+
+            # 1. Broadast Full System State
+            if system:
+                snapshot = system.get_status_report()
+                await manager.broadcast({
+                    "type": "state_update",
+                    "data": snapshot
+                })
+
+            # 2. Broadcast New Memory entries
+            if system and hasattr(system, 'memory_store'):
+                recent = system.memory_store.query_messages(limit=10)
+                new_msgs = [m for m in recent if m['id'] > last_msg_id]
+                if new_msgs:
+                    # Sort chronological for the client
+                    new_msgs.sort(key=lambda x: x['id'])
+                    await manager.broadcast({
+                        "type": "new_messages",
+                        "data": new_msgs
+                    })
+                    last_msg_id = new_msgs[-1]['id']
+
+            await asyncio.sleep(0.5)  # Tactical refresh rate (500ms)
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            logger.error(f"Tactical Broadcaster encountered resistance: {e}")
+            await asyncio.sleep(5)
 
 # -------------------------------------------------------------------------
 # Data Models (Pydantic)
@@ -278,4 +366,27 @@ async def search_memory(
     else:
         # Fallback if SystemManager update is pending
         raise HTTPException(status_code=501, detail="Memory subsystem not yet attached to SystemManager")
+
+# -------------------------------------------------------------------------
+# Strategic WebSocket Endpoint
+# -------------------------------------------------------------------------
+
+@app.websocket("/ws/stream")
+async def websocket_endpoint(websocket: WebSocket):
+    """
+    Persistent tactical link for real-time cluster intelligence.
+    Streams logs, status updates, and agent events.
+    """
+    await manager.contract(websocket)
+    try:
+        while True:
+            # Keep the connection alive and listen for any incoming client commands
+            data = await websocket.receive_text()
+            # For now, we just echo or log, as control is primary via REST
+            logger.debug(f"Received from GUI client: {data}")
+    except WebSocketDisconnect:
+        manager.sever(websocket)
+    except Exception as e:
+        logger.error(f"Tactical link error: {e}")
+        manager.sever(websocket)
 
