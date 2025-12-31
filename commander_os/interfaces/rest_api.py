@@ -240,6 +240,9 @@ async def list_nodes():
                 node_data['fa'] = config.engine.fa
                 node_data['binary'] = config.engine.binary
                 
+        # Add live metrics from StateManager
+        node_data['metrics'] = node_state.metrics
+                
         nodes.append(node_data)
     return nodes
 

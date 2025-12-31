@@ -64,7 +64,9 @@ class NodeState:
     status: ComponentStatus = ComponentStatus.UNKNOWN
     registered_agents: List[str] = field(default_factory=list)
     last_heartbeat: float = field(default_factory=time.time)
+    registration_time: float = field(default_factory=time.time)
     resources: Dict[str, Any] = field(default_factory=dict)  # cpu, ram, gpu
+    metrics: Dict[str, Any] = field(default_factory=lambda: {"tps": 0.0, "load": 0.0})
 
     def to_dict(self) -> Dict[str, Any]:
         data = asdict(self)
@@ -150,6 +152,13 @@ class StateManager:
         """Update node heartbeat timestamp."""
         with self._lock:
             if node_id in self._nodes:
+                self._nodes[node_id].last_heartbeat = time.time()
+
+    def update_node_metrics(self, node_id: str, metrics: Dict[str, Any]) -> None:
+        """Update a node's live metrics (TPS, load, etc)."""
+        with self._lock:
+            if node_id in self._nodes:
+                self._nodes[node_id].metrics.update(metrics)
                 self._nodes[node_id].last_heartbeat = time.time()
             
     def get_node(self, node_id: str) -> Optional[NodeState]:

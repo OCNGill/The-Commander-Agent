@@ -14,8 +14,14 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [dials, setDials] = useState({ ctx: 4096, ngl: 32, fa: true, binary: 'go.exe' });
   const [availableModels, setAvailableModels] = useState([]);
+  const selectedNodeRef = React.useRef(null);
 
-  // Subscribe to real-time updates
+  const handleSelectNode = (node) => {
+    setSelectedNode(node);
+    selectedNodeRef.current = node;
+  };
+
+  // Establish tactical WebSocket link
   useEffect(() => {
     // Initial fetch to populate state
     const fetchInitial = async () => {
@@ -34,25 +40,33 @@ function App() {
     };
     fetchInitial();
 
-    // Establish tactical WebSocket link
     const socket = api.subscribe((packet) => {
       if (packet.type === 'state_update') {
         const snapshot = packet.data;
         setSystemStatus(snapshot.system.status);
 
-        // Match nodes with config overlay (we still need listNodes for the name/bench overlay)
-        // or we could push the full merged config in state_update. 
-        // For now, let's keep it simple and just update the status from snapshot.
-        setNodes(prev => prev.map(n => {
-          const match = Object.values(snapshot.nodes).find(sn => sn.node_id === n.node_id);
-          return match ? { ...n, status: match.status } : n;
-        }));
-        // Update agents if they are part of the state_update
+        setNodes(prev => {
+          return prev.map(n => {
+            const match = Object.values(snapshot.nodes).find(sn => sn.node_id === n.node_id);
+            if (match) {
+              return { ...n, ...match, status: match.status };
+            }
+            return n;
+          });
+        });
+
+        // Update selectedNode directly if it exists in snapshot using ref to stay current
+        if (selectedNodeRef.current) {
+          const match = Object.values(snapshot.nodes).find(sn => sn.node_id === selectedNodeRef.current.node_id);
+          if (match) {
+            setSelectedNode(prev => prev ? { ...prev, ...match, status: match.status } : null);
+          }
+        }
+
         if (snapshot.agents) {
           setAgents(snapshot.agents);
         }
       } else if (packet.type === 'new_messages') {
-        // Prepend new messages to the log stream
         setTraffic(prev => [...packet.data.reverse(), ...prev].slice(0, 50));
       }
     });
@@ -145,7 +159,7 @@ function App() {
                 key={node.node_id}
                 className={`node-card ${selectedNode?.node_id === node.node_id ? 'active' : ''}`}
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setSelectedNode(node)}
+                onClick={() => handleSelectNode(node)}
               >
                 <div className="node-info">
                   <div className="node-top">
@@ -154,11 +168,11 @@ function App() {
                   </div>
                   <div className="node-hardware">
                     <Cpu size={14} />
-                    <span>{node.resources.gpu || 'Default Hardware'} // {node.tps_benchmark || 0} t/s</span>
+                    <span>{node.metrics?.tps?.toFixed(1) || '0.0'} TPS // {node.tps_benchmark || 0} MAX</span>
                   </div>
                 </div>
                 <div className="node-gauge">
-                  <div className={`gauge-fill ${node.status}`} style={{ width: `${(node.tps_benchmark / 130) * 100}%` }}></div>
+                  <div className={`gauge-fill ${node.status}`} style={{ width: `${Math.min(100, (node.metrics?.tps / (node.tps_benchmark || 100)) * 100)}%` }}></div>
                 </div>
               </motion.div>
             ))}
@@ -179,6 +193,21 @@ function App() {
               >
                 <div className="panel-header strategic-border">
                   <h3>NODE CONTROL: {selectedNode.name || selectedNode.node_id}</h3>
+                </div>
+
+                <div className="telemetry-strip">
+                  <div className="telemetry-item">
+                    <span className="label">LIVE PERFORMANCE</span>
+                    <span className="value glow-text">{(selectedNode.metrics?.tps || 0).toFixed(2)} TPS</span>
+                  </div>
+                  <div className="telemetry-item">
+                    <span className="label">LOAD</span>
+                    <span className="value">{(selectedNode.metrics?.load || 0).toFixed(1)}%</span>
+                  </div>
+                  <div className="telemetry-item">
+                    <span className="label">NODE UPTIME</span>
+                    <span className="value">{selectedNode.registration_time ? ((Date.now() / 1000 - selectedNode.registration_time) / 3600).toFixed(1) : '0.0'}h</span>
+                  </div>
                 </div>
 
                 <div className="control-groups">

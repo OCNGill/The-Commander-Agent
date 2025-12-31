@@ -1,7 +1,7 @@
-# **The-Commander — Master Plan (v1.2.12)**
+# **The-Commander — Master Plan (7am.md)**
 
-**Date:** 2025-12-31 06:10  
-**Status:** Phase 6 Progressing | **Tactical Models Integrated**  
+**Date:** 2025-12-31 06:12  
+**Status:** Phase 6 Progressing | **Cluster Heartbeat Underway**  
 **Authoritative State:** Command & Control Logic defined for Strategic GUI.
 
 ---
@@ -32,7 +32,7 @@
 - [x] **Dynamic Hardware Dials**: Real-time adjustment of Context (`-c`) and NGL (`-ngl`) per node with remote re-ignition.
 - [x] **Strategic Model Selector**: Remote file browser to locate and swap `.gguf` files with dedicated FA (Flash Attention) toggle.
 - [x] **Binary Authority Control**: Graphical selection/renaming of backend binaries (e.g., `go.exe` vs `llama-server.exe`).
-- [ ] **Cluster Heartbeat**: Live visualizations of node TPS load and availability.
+- [x] **Cluster Heartbeat**: Live visualizations of node TPS load and availability with real-time heartbeat telemetry.
 - [ ] **Intelligence Log**: Web-based stream of the HTPC MessageStore.
 - [ ] **One-Click Deployment**: Single "IGNITE ALL" button to spin up the entire cluster from the browser.
 

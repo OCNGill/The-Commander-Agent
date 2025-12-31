@@ -182,6 +182,34 @@
   padding: 1.25rem;
 }
 
+.telemetry-strip {
+  display: flex;
+  background: rgba(0, 242, 255, 0.03);
+  border-bottom: 1px solid var(--border-dim);
+  padding: 1rem 1.5rem;
+  justify-content: space-between;
+}
+
+.telemetry-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.telemetry-item .label {
+  font-size: 0.6rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  letter-spacing: 0.1em;
+}
+
+.telemetry-item .value {
+  font-family: monospace;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
 .panel-header h3 {
   font-size: 1.125rem;
   letter-spacing: 0.05em;

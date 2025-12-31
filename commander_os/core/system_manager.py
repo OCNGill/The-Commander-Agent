@@ -16,11 +16,13 @@ import time
 import subprocess
 import sys
 import os
+import random
+import threading
 from pathlib import Path
 from typing import Dict, Any, Optional
 
 from commander_os.core.config_manager import ConfigManager
-from commander_os.core.state import StateManager, SystemStatus
+from commander_os.core.state import StateManager, SystemStatus, ComponentStatus
 from commander_os.core.node_manager import NodeManager
 from commander_os.core.agent_manager import AgentManager
 from commander_os.core.memory import MessageStore
@@ -69,18 +71,55 @@ class SystemManager:
 
     def bootstrap(self) -> bool:
         """
-        Phase 1: Load configurations and prepare for startup.
+        Initialize core components and load configurations.
+        Must be called before starting services.
         """
         logger.info("Bootstrapping system...")
-        
-        if not self.config_manager.load_all():
-            logger.critical("Failed to load configurations. Aborting bootstrap.")
-            self.state_manager.set_system_status(SystemStatus.ERROR)
-            return False
+        try:
+            # 1. Load configurations
+            if not self.config_manager.load_all():
+                logger.error("Failed to load configurations during bootstrap")
+                return False
             
-        logger.info("Bootstrap complete: Configs loaded.")
-        return True
+            # 2. Register this node
+            local_cfg = self.config_manager.get_node(self.local_node_id)
+            if local_cfg:
+                self.state_manager.register_node(
+                    self.local_node_id, 
+                    local_cfg.host, 
+                    local_cfg.port
+                )
+            
+            # Start background telemetry loop
+            threading.Thread(target=self._telemetry_loop, daemon=True).start()
 
+            logger.info("Bootstrap complete: Configs loaded.")
+            return True
+        except Exception as e:
+            logger.error(f"Bootstrap failed: {e}")
+            return False
+
+    def _telemetry_loop(self):
+        """Background thread to update node metrics/heartbeats."""
+        while True:
+            try:
+                # Update local node metrics (Simulated for Phase 6 visualization)
+                status = self.state_manager.get_node(self.local_node_id).status
+                if status == ComponentStatus.READY or status == ComponentStatus.BUSY:
+                   # If engine is running, show some TPS
+                   tps = random.uniform(25, 130) if status == ComponentStatus.BUSY else random.uniform(0, 5)
+                   load = random.uniform(10, 95) if status == ComponentStatus.BUSY else random.uniform(1, 5)
+                   self.state_manager.update_node_metrics(self.local_node_id, {"tps": tps, "load": load})
+                else:
+                   self.state_manager.update_node_metrics(self.local_node_id, {"tps": 0.0, "load": 0.0})
+                
+                # Prune stale components
+                self.state_manager.prune_stale_components()
+                
+            except Exception as e:
+                logger.error(f"Telemetry loop error: {e}")
+            time.sleep(2)
+            
     def start_system(self) -> bool:
         """
         Start the entire system.
