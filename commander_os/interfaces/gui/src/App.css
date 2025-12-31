@@ -62,9 +62,30 @@
 }
 
 .ignite-button.active {
-  background: var(--accent-cyan);
-  color: var(--bg-deep);
-  box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+  background: var(--success);
+  border-color: var(--success);
+  color: #000;
+  box-shadow: 0 0 20px rgba(0, 255, 102, 0.4);
+}
+
+.ignite-button.starting {
+  background: var(--warning);
+  border-color: var(--warning);
+  color: #000;
+  opacity: 0.8;
+  animation: pulse-warn 1.5s infinite;
+}
+
+@keyframes pulse-warn {
+
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Main Command Area */

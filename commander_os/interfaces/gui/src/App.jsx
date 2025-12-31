@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, Activity, Database, Cpu, Layout, Power, RefreshCw, Terminal } from 'lucide-react';
+import { Terminal, Database, Shield, Zap, Cpu, Activity, Settings, RefreshCw, Power } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { api } from './api/commander-api';
+import api from './api/commander-api';
 import TerminalLog from './components/TerminalLog';
+import DeploymentHUD from './components/DeploymentHUD';
 import './App.css';
 
 function App() {
@@ -121,6 +122,12 @@ function App() {
 
   return (
     <div className="war-room-root">
+      <AnimatePresence>
+        {systemStatus === 'starting' && (
+          <DeploymentHUD status={systemStatus} />
+        )}
+      </AnimatePresence>
+
       {/* Strategic Header */}
       <header className="strategic-header">
         <div className="logo-section">
@@ -133,15 +140,16 @@ function App() {
 
         <div className="system-status">
           <div className="status-item">
-            <Activity size={18} color="var(--success)" />
-            <span>CLUSTER ONLINE</span>
+            <Activity size={18} color={systemStatus === 'running' ? 'var(--success)' : 'var(--warning)'} />
+            <span>{systemStatus === 'running' ? 'CLUSTER ONLINE' : systemStatus === 'starting' ? 'BOOTING PROTOCOLS' : 'OFFLINE'}</span>
           </div>
           <button
-            className={`ignite-button ${isIgnited ? 'active' : ''}`}
+            className={`ignite-button ${isIgnited ? 'active' : ''} ${systemStatus === 'starting' ? 'starting' : ''}`}
             onClick={handleIgnite}
+            disabled={systemStatus === 'starting'}
           >
             <Power size={18} />
-            {isIgnited ? 'SYSTEM ARMED' : 'IGNITE CLUSTER'}
+            {isIgnited ? 'ARMED & ACTIVE' : systemStatus === 'starting' ? 'IGNITING...' : 'IGNITE ALL'}
           </button>
         </div>
       </header>

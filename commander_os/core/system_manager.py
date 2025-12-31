@@ -104,7 +104,20 @@ class SystemManager:
         while True:
             try:
                 # Update local node metrics (Simulated for Phase 6 visualization)
-                status = self.state_manager.get_node(self.local_node_id).status
+                node_state = self.state_manager.get_node(self.local_node_id)
+                if not node_state:
+                    time.sleep(1)
+                    continue
+
+                status = node_state.status
+                
+                # Periodically simulate activity if system is running
+                if self.state_manager.system_status == SystemStatus.RUNNING:
+                    if random.random() > 0.8: # 20% chance to toggle activity
+                        new_status = ComponentStatus.BUSY if status == ComponentStatus.READY else ComponentStatus.READY
+                        self.state_manager.update_node_status(self.local_node_id, new_status)
+                        status = new_status
+
                 if status == ComponentStatus.READY or status == ComponentStatus.BUSY:
                    # If engine is running, show some TPS
                    tps = random.uniform(25, 130) if status == ComponentStatus.BUSY else random.uniform(0, 5)
