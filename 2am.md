@@ -13,8 +13,8 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **node-main** | Gillsystems-Main | Radeon 7900XTX | **130** | Qwen3-Coder-25B (131k ctx, 999 NGL) |
 | **node-htpc** | Gillsystems-HTPC | Radeon 7600 | **60** | Granite-4.0-h-tiny (114k ctx, 40 NGL) |
-| **node-steamdeck**| Steam Deck | Custom APU | **30** | Granite-4.0-h-tiny (43k ctx, 32 NGL) |
-| **node-laptop**| Gillsystems-Laptop| Integrated | **9** | Granite-4.0-h-tiny (32k ctx, 999 NGL) |
+| **node-steamdeck**| Steam Deck | Custom APU | **30** | Granite-4.0-h-tiny (21k ctx, 32 NGL) |
+| **node-laptop**| Gillsystems-Laptop| Integrated | **9** | Granite-4.0-h-tiny (21k ctx, 999 NGL) |
 
 ---
 
