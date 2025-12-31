@@ -1,0 +1,60 @@
+# The-Commander: Role Definitions
+# Dynamic role configuration with override permissions
+# Version: 1.1.0
+
+roles:
+  architect:
+    name: "Architect"
+    description: "High-level system design and task decomposition"
+    system_prompt_prefix: "You are a senior software architect."
+    default_context_size: 16384
+    priority: 1  # Highest priority for task routing
+    can_delegate_to:
+      - coder
+      - reasoner
+    permissions:
+      - "create_task"
+      - "assign_role"
+      - "review_output"
+
+  coder:
+    name: "Coder"
+    description: "Code implementation and modification"
+    system_prompt_prefix: "You are an expert software developer."
+    default_context_size: 8192
+    priority: 2
+    can_delegate_to:
+      - reasoner
+    permissions:
+      - "execute_code"
+      - "modify_files"
+      - "run_tests"
+
+  reasoner:
+    name: "Reasoner"
+    description: "Logical analysis and problem solving"
+    system_prompt_prefix: "You are a logical reasoning expert."
+    default_context_size: 8192
+    priority: 2
+    can_delegate_to: []
+    permissions:
+      - "analyze_task"
+      - "validate_logic"
+
+  synthesizer:
+    name: "Synthesizer"
+    description: "Combines outputs and creates summaries"
+    system_prompt_prefix: "You are an expert at synthesizing information."
+    default_context_size: 12288
+    priority: 3
+    can_delegate_to: []
+    permissions:
+      - "merge_outputs"
+      - "create_summary"
+      - "finalize_task"
+
+# User override settings
+override_policy:
+  allow_role_change: true
+  require_confirmation: false
+  log_changes: true

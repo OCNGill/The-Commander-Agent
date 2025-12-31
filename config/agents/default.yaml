@@ -1,0 +1,47 @@
+# The-Commander: Default Agent Configuration Template
+# This serves as the template for new agents
+# Version: 1.1.0
+
+agent:
+  id: "agent-default"
+  name: "Default Agent"
+  enabled: true
+  
+  # Role assignment (can be overridden at runtime)
+  role: "coder"
+  
+  # Node assignment
+  node_id: "node-local"
+  
+  # Model configuration
+  model:
+    path: ""  # Path to GGUF model file (required)
+    context_size: 8192
+    ngl: 40  # GPU layers (0-80 typical)
+    flash_attention: true
+    
+  # Llama.cpp parameters (passthrough)
+  llama_params:
+    threads: 8
+    batch_size: 512
+    ubatch_size: 64
+    temperature: 0.7
+    top_k: 40
+    top_p: 0.9
+    repeat_penalty: 1.1
+    
+  # Network configuration
+  network:
+    host: "127.0.0.1"
+    port: 8080  # Auto-assigned if 0
+    
+  # Health monitoring
+  health:
+    heartbeat_interval: 10  # seconds
+    max_missed_heartbeats: 3
+    auto_restart: true
+    
+  # Memory settings
+  memory:
+    log_messages: true
+    max_history: 1000
