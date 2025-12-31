@@ -36,15 +36,13 @@ def cli():
     pass
 
 @cli.command(name="hub")
-@click.option('--host', default='0.0.0.0', help='Host to bind relay server.')
-@click.option('--port', default=8001, help='Port to bind relay server.')
-def hub(host, port):
+def hub():
     """(HUB) Start the Central Intelligence Relay Server."""
-    click.echo(f"Activating Intelligence Hub on {host}:{port}...")
-    run_relay(host=host, port=port)
+    click.echo("Activating Intelligence Hub (config-driven)...")
+    run_relay()
 
 @cli.command(name="engine")
-@click.option('--node', default='node-main', help='Local Node ID.')
+@click.option('--node', default='Gillsystems-Main', help='Local Node ID.')
 def engine(node):
     """(ENGINE) Start the Local Compute Engine Service."""
     click.echo(f"Igniting Core Engine on {node}...")
@@ -58,10 +56,10 @@ def engine(node):
         except KeyboardInterrupt:
             sm.stop_system()
     else:
-        click.error("Engine failure. Check logs.")
+        click.echo("[ERROR] Engine failure. Check logs.")
 
 @cli.command(name="war-room")
-@click.option('--node', default='node-main', help='Local Node ID.')
+@click.option('--node', default='Gillsystems-Main', help='Local Node ID.')
 def war_room(node):
     """(WAR-ROOM) Launch the Strategic Intelligence Dashboard."""
     # We remove StreamHandler to keep TUI clean
@@ -88,7 +86,7 @@ def commander_gui_dashboard(host, port):
     from commander_os.core.config_manager import ConfigManager
     
     # Auto-Detect Identity based on IP/Host
-    # This prevents "Laptop" from acting as "Main"
+    # This prevents "Gillsystems-Laptop" from acting as "Gillsystems-Main"
     click.echo("[IDENTITY] resolving local identity...")
     
     cm = ConfigManager()
@@ -98,15 +96,15 @@ def commander_gui_dashboard(host, port):
         # Get all local IPs
         local_ips = set()
         try:
-             # Basic
-             local_ips.add(socket.gethostbyname(hostname))
-             # Detailed
-             for info in socket.getaddrinfo(hostname, None):
-                 local_ips.add(info[4][0])
+            # Basic
+            local_ips.add(socket.gethostbyname(hostname))
+            # Detailed
+            for info in socket.getaddrinfo(hostname, None):
+                local_ips.add(info[4][0])
         except:
             pass
 
-        target_node = 'node-main' # Default fallback
+        target_node = 'Gillsystems-Main' # Default fallback
         target_port = port # Default from CLI arg (8000)
         found = False
 
@@ -114,17 +112,17 @@ def commander_gui_dashboard(host, port):
         for n_id, n_cfg in cm.nodes.items():
             # Check Hostname match (case insensitive)
             if n_cfg.name.lower() in hostname.lower() or n_cfg.id.lower() in hostname.lower():
-                 target_node = n_id
-                 target_port = n_cfg.port
-                 found = True
-                 break
+                target_node = n_id
+                target_port = n_cfg.port
+                found = True
+                break
             # Check IP match
             if n_cfg.host in local_ips:
-                 target_node = n_id
-                 target_port = n_cfg.port
-                 found = True
-                 break
-        
+                target_node = n_id
+                target_port = n_cfg.port
+                found = True
+                break
+
         if found:
             click.echo(f"[IDENTITY] DETECTED: {target_node} on Port {target_port}")
             os.environ["COMMANDER_NODE_ID"] = target_node
@@ -134,18 +132,18 @@ def commander_gui_dashboard(host, port):
             # Host binding: 0.0.0.0 is safer for valid access
             host = "0.0.0.0" 
         else:
-             click.echo(f"[IDENTITY] UNKNOWN. Defaulting to {target_node}")
-             os.environ["COMMANDER_NODE_ID"] = target_node
+            click.echo(f"[IDENTITY] UNKNOWN. Defaulting to {target_node}")
+            os.environ["COMMANDER_NODE_ID"] = target_node
 
     except Exception as e:
-        click.echo(f"[IDENTITY] Detection failed: {e}. Defaulting to node-main.")
-        os.environ["COMMANDER_NODE_ID"] = "node-main"
+        click.echo(f"[IDENTITY] Detection failed: {e}. Defaulting to Gillsystems-Main.")
+        os.environ["COMMANDER_NODE_ID"] = "Gillsystems-Main"
 
     # Echo immediately before long imports/init
     click.echo(f"------------------------------------------------------------")
     click.echo(f"  IGNITING ORCHESTRATION HUB: http://{host}:{port}")
     click.echo(f"  IDENTITY: {os.environ.get('COMMANDER_NODE_ID')}")
-    click.echo(f"  VERSION: v1.2.17")
+    click.echo(f"  VERSION: v1.2.19")
     click.echo(f"------------------------------------------------------------")
     
     from commander_os.interfaces.rest_api import app

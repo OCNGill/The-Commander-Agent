@@ -54,6 +54,7 @@ class NodeConfig:
     max_agents: int = 4
     tps_benchmark: int = 0  # Tokens per second performance baseline
     model_root_path: str = ""  # Authoritative path for model files on this node
+    critical_service: bool = False  # If True, never marks node as OFFLINE (storage, relay, etc)
     engine: Optional[EngineConfig] = None
 
 
@@ -246,6 +247,7 @@ class ConfigManager:
                     max_agents=node_data.get('max_agents', 4),
                     tps_benchmark=node_data.get('tps_benchmark', 0),
                     model_root_path=node_data.get('model_root_path', ""),
+                    critical_service=node_data.get('critical_service', False),
                     engine=engine
                 )
                 self._nodes[node.id] = node

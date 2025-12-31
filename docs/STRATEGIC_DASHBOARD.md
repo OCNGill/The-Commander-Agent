@@ -1,6 +1,8 @@
-# The War Room: Strategic Command & Control
+# Strategic Dashboard: Command & Control Interface
 
-The War Room is the high-fidelity graphical interface for The-Commander OS. It is built with **React, Vite, and Framer Motion** to provide a premium, tactical experience.
+The Strategic Dashboard is the high-fidelity graphical interface for Gillsystems Commander OS. It is built with **React, Vite, and Framer Motion** to provide a premium, tactical experience.
+
+**Version:** 1.2.19
 
 ## **Tactical Features**
 
@@ -10,7 +12,7 @@ The interface maintains a persistent WebSocket link to the Hub. Every system sta
 - **Telemetry Strip**: Detailed performance metrics including Load, Uptime, and inference speed.
 
 ### **2. Dynamic Hardware Dials**
-Unlike static configurations, the War Room allows for "hot-dialing" hardware parameters:
+Unlike static configurations, the Strategic Dashboard allows for "hot-dialing" hardware parameters:
 - **Context Size (`-c`)**: Adjust the memory window of the LLM.
 - **GPU Layers (`-ngl`)**: Offload specifically calculated layers to VRAM.
 - **Flash Attention (FA)**: Toggle high-performance attention kernels.

@@ -2,10 +2,10 @@
 SETLOCAL EnableDelayedExpansion
 chcp 65001 >nul
 
-title THE_COMMANDER // UNIFIED CONSOLE [v1.2.34]
+title GILLSYSTEMS COMMANDER OS // UNIFIED CONSOLE [v1.2.19]
 echo.
 echo  ============================================================
-echo     THE_COMMANDER: UNIFIED CONSOLE [v1.2.34 DEP-FIX]
+echo     GILLSYSTEMS COMMANDER OS: UNIFIED CONSOLE [v1.2.19]
 echo     PRIME DIRECTIVE: ALWAYS VERIFY REQUIREMENTS
 echo  ============================================================
 
@@ -60,7 +60,7 @@ echo [SUCCESS] Dependencies Synchronized.
 :: STAGE 3: HUD (Background Launch)
 :: -----------------------------------------------------------------------------
 echo.
-echo [STAGE 3] LAUNCHING HUD (BACKGROUND)...
+echo [STAGE 3] LAUNCHING STRATEGIC DASHBOARD (BACKGROUND)...
 cd /d "%GUI_DIR%"
 if not exist node_modules call npm install --loglevel error --no-audit
 
@@ -74,8 +74,11 @@ cd /d "%ROOT_DIR%"
 echo.
 echo [STAGE 4] ENGAGING ORCHESTRATION HUB...
 echo.
-echo [INFO] The Commander is ACTIVE.
-echo [INFO] Access War Room: http://localhost:5173
+echo  ============================================================
+echo     GILLSYSTEMS COMMANDER OS is ACTIVE
+echo  ============================================================
+echo.
+echo [INFO] Access Strategic Dashboard: http://localhost:5173
 echo [INFO] Ctrl+C to Terminate Backend.
 echo.
 

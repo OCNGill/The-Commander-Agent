@@ -8,7 +8,7 @@ To prevent binary incompatibility and dependency hell, this system **STRICTLY RE
 *   **OS**: Windows 10/11 x64
 
 ## **The Ignition Sequence**
-Starting a distributed cluster is complex. The-Commander simplifies this into a single authoritative "IGNITE ALL" command.
+Starting a distributed cluster is complex. Gillsystems Commander OS simplifies this into a single authoritative "IGNITE ALL" command.
 
 Execution Order:
 1.  **Bootstrap**: Load YAML configurations and initialize in-memory managers.
@@ -18,7 +18,7 @@ Execution Order:
 5.  **Agent Deployment**: Spin up the assigned agent roles across the validated nodes.
 
 ## **Hardware Re-Ignition**
-When hardware dials (Context, NGL, Model) are adjusted in the GUI, the affected node undergoes a "Tactical Re-Ignition":
+When hardware dials (Context, NGL, Model) are adjusted in the Strategic Dashboard, the affected node undergoes a "Tactical Re-Ignition":
 1.  **Shutdown**: The existing backend process is safely terminated.
 2.  **Config Sync**: The new parameters are persisted to `relay.yaml`.
 3.  **Respawn**: A new process is launched with the updated CLI flags.

@@ -1,15 +1,13 @@
 #!/bin/bash
 
-# THE_COMMANDER // CLUSTER IGNITION (Linux/Unix)
+# GILLSYSTEMS COMMANDER OS // CLUSTER IGNITION (Linux/Unix)
 
 echo -e "\n \e[1;34m############################################################\e[0m"
+echo -e " \e[1;34m##                                                        ##\e[0m"  
+echo -e " \e[1;34m##        🛡️  GILLSYSTEMS COMMANDER OS v1.2.19           ##\e[0m"  
+echo -e " \e[1;34m##            STRATEGIC CLUSTER ORCHESTRATION             ##\e[0m"  
 echo -e " \e[1;34m##                                                        ##\e[0m"
-echo -e " \e[1;34m##             🛡️  THE_COMMANDER: OS IGNITER              ##\e[0m"
-echo -e " \e[1;34m##            STRATEGIC CLUSTER ORCHESTRATION             ##\e[0m"
-echo -e " \e[1;34m##                                                        ##\e[0m"
-echo -e " \e[1;34m############################################################\e[0m\n"
-
-# 1. System Check
+echo -e " \e[1;34m############################################################\e[0m\n"# 1. System Check
 echo "[1/4] EXAMINING OPERATIONAL ENVIRONMENT..."
 if ! command -v python3 &> /dev/null; then
     echo -e "\e[1;31m[ERROR] python3 not found.\e[0m"
@@ -37,7 +35,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # 3. GUI Environment
-echo -e "\n[3/4] SYNCHRONIZING STRATEGIC HUD..."
+echo -e "\n[3/4] SYNCHRONIZING STRATEGIC DASHBOARD..."
 cd commander_os/interfaces/gui || exit
 if [ ! -d "node_modules" ]; then
     echo "[INFO] Node modules missing. Initiating full tactical download..."
@@ -56,20 +54,20 @@ echo -e "\n[4/4] ENGAGING ALL PROTOCOLS..."
 # Determine background execution
 source .venv/bin/activate
 # Keep stdout/stderr visible for the commander until the background task is fully confirmed
-python main.py war-room-web &
+python main.py commander-gui-dashboard &
 BACKEND_PID=$!
 echo -e "\e[1;33m[!] Orchestration Backend Ignited (PID: $BACKEND_PID)\e[0m"
 
 cd commander_os/interfaces/gui || exit
 npm run dev &
 FRONTEND_PID=$!
-echo -e "\e[1;33m[!] Strategic HUD Ignited (PID: $FRONTEND_PID)\e[0m"
+echo -e "\e[1;33m[!] Strategic Dashboard Ignited (PID: $FRONTEND_PID)\e[0m"
 
 echo -e "\n \e[1;32m############################################################\e[0m"
 echo -e " \e[1;32m##                                                        ##\e[0m"
 echo -e " \e[1;32m##            ✅ CLUSTER IGNITION SUCCESSFUL             ##\e[0m"
 echo -e " \e[1;32m##                                                        ##\e[0m"
-echo -e " \e[1;32m##    🌐 ACCESS WAR ROOM: http://localhost:5173           ##\e[0m"
+echo -e " \e[1;32m##  🌐 ACCESS STRATEGIC DASHBOARD: http://localhost:5173  ##\e[0m"
 echo -e " \e[1;32m##                                                        ##\e[0m"
 echo -e " \e[1;32m############################################################\e[0m\n"
 

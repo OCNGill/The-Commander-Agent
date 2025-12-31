@@ -13,7 +13,7 @@ flowchart TB
   subgraph Cluster["Commander Cluster Topology"]
     direction TB
     
-    subgraph MainNode["Global Hub (node-main)"]
+  subgraph MainNode["Global Hub (Gillsystems-Main)"]
         direction TB
         Commander[THE COMMANDER\nOrchestrator]
         REST[REST API Gateway]
@@ -21,7 +21,7 @@ flowchart TB
         SysMgr[System Manager]
     end
 
-    subgraph StorageNode["Memory Authority (node-htpc)"]
+  subgraph StorageNode["Memory Authority (Gillsystems-HTPC)"]
         direction TB
         Relay[Relay Server\nCluster Fabric]
         ComputeHTPC[Inference Engine\n60 t/s]
@@ -30,8 +30,8 @@ flowchart TB
 
     subgraph WorkerNodes["Tactical Workers"]
         direction LR
-        Laptop["Laptop\n9 t/s"]
-        SteamDeck["Steam Deck\n30 t/s"]
+  Laptop["Gillsystems-Laptop\n9 t/s"]
+  SteamDeck["Gillsystems-Steam-Deck\n30 t/s"]
     end
   end
 

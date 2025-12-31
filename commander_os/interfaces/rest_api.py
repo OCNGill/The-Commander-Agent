@@ -9,6 +9,7 @@ Version: 1.1.0
 
 import logging
 import os
+import requests
 from typing import List, Dict, Any, Optional
 from contextlib import asynccontextmanager
 import asyncio
@@ -37,7 +38,7 @@ async def lifespan(app: FastAPI):
     
     # Initialize SystemManager (config load happens here)
     # CRITICAL: Use Env Var to determine Identity (injected by main.py)
-    node_id = os.getenv("COMMANDER_NODE_ID", "node-main")
+    node_id = os.getenv("COMMANDER_NODE_ID", "Gillsystems-Main")
     logger.info(f"Initializing System Manager as: {node_id}")
     system = SystemManager(local_node_id=node_id)
     
@@ -64,9 +65,9 @@ async def lifespan(app: FastAPI):
 
 # Initialize FastAPI
 app = FastAPI(
-    title="The-Commander API",
-    version="1.1.0",
-    description="Control interface for The-Commander AI Agent Operating System",
+    title="Gillsystems Commander OS API",
+    version="1.2.19",
+    description="Control interface for Gillsystems Commander OS - AI Agent Operating System",
     lifespan=lifespan
 )
 
@@ -82,7 +83,12 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     """Tactical health check for port verification."""
-    return {"status": "online", "system": "The-Commander OS"}
+    return {"status": "online", "system": "Gillsystems Commander OS"}
+
+@app.get("/version")
+async def get_version():
+    """Return system version for dynamic display."""
+    return {"version": "1.2.19", "system": "Gillsystems Commander OS"}
 
 # -------------------------------------------------------------------------
 # WebSocket Connection Manager
@@ -198,19 +204,85 @@ class CommandRequest(BaseModel):
 
 @app.post("/command", response_model=ActionResponse)
 async def submit_command(cmd: CommandRequest):
-    """Submit a manual command to the system."""
+    """
+    Submit a manual command to The Commander.
+    Routes to highest-ranking active node based on tps_benchmark.
+    """
     if not system:
         raise HTTPException(status_code=503, detail="System not initialized")
     
+    # Log the user message
     if hasattr(system, 'memory_store'):
-        system.memory_store.add_message(
+        system.memory_store.log_message(
             task_id="chat", 
-            sender="THE_COMMANDER", 
+            sender="THE_COMMANDER",
+            recipient="system",
             role="user", 
             content=cmd.text
         )
-        return {"success": True, "message": "Command logged"}
-    return {"success": False, "message": "Memory unavailable"}
+    
+    # Find highest-ranking active node (highest tps_benchmark)
+    active_nodes = []
+    for node_id, config in system.config_manager.nodes.items():
+        node_state = system.state_manager.get_node(node_id)
+        if node_state and node_state.status in ['ready', 'online']:
+            active_nodes.append({
+                'node_id': node_id,
+                'config': config,
+                'tps_benchmark': config.tps_benchmark
+            })
+    
+    if not active_nodes:
+        return {"success": False, "message": "No active nodes available"}
+    
+    # Sort by tps_benchmark descending (highest first)
+    active_nodes.sort(key=lambda x: x['tps_benchmark'], reverse=True)
+    target_node = active_nodes[0]
+    
+    logger.info(f"Routing command to highest-ranking node: {target_node['node_id']} (TPS: {target_node['tps_benchmark']})")
+    
+    # Call the node's LLM inference endpoint
+    try:
+        node_url = f"http://{target_node['config'].host}:{target_node['config'].port}/completion"
+        payload = {
+            "prompt": cmd.text,
+            "n_predict": 512,
+            "temperature": 0.7,
+            "stop": ["User:", "Commander:"],
+            "stream": False
+        }
+        
+        logger.info(f"Sending inference request to {node_url}")
+        response = requests.post(node_url, json=payload, timeout=30)
+        
+        if response.status_code == 200:
+            result = response.json()
+            response_text = result.get('content', '').strip()
+            
+            # Log the assistant response
+            if hasattr(system, 'memory_store'):
+                system.memory_store.log_message(
+                    task_id="chat",
+                    sender=target_node['node_id'],
+                    recipient="THE_COMMANDER",
+                    role="assistant",
+                    content=response_text
+                )
+            
+            return {"success": True, "message": f"Response from {target_node['node_id']}", "response": response_text}
+        else:
+            error_msg = f"Node returned status {response.status_code}"
+            logger.error(error_msg)
+            return {"success": False, "message": error_msg}
+            
+    except requests.exceptions.Timeout:
+        error_msg = f"Timeout waiting for response from {target_node['node_id']}"
+        logger.error(error_msg)
+        return {"success": False, "message": error_msg}
+    except Exception as e:
+        error_msg = f"Inference failed: {str(e)}"
+        logger.error(error_msg)
+        return {"success": False, "message": error_msg}
 
 @app.post("/system/start", response_model=ActionResponse)
 async def start_system():
@@ -325,46 +397,78 @@ async def stop_node(node_id: str):
 async def reignite_node_engine(node_id: str, update: EngineUpdate):
     """
     Update engine config and reignite the LLM backend.
+    Currently only supports local node engine control.
     """
     if not system:
         raise HTTPException(status_code=503, detail="System not initialized")
     
-    # Check if this is local node or remote (Phase 6 focuses on Local Hub control)
+    # Only allow updating the local node's engine
     if node_id != system.local_node_id:
-        raise HTTPException(status_code=501, detail="Remote node engine control not yet implemented in cluster-fabric")
+        return {"success": False, "message": f"Can only control local node ({system.local_node_id}). Remote node control not yet implemented."}
 
     updates = {k: v for k, v in update.dict().items() if v is not None}
+    logger.info(f"Reigniting engine for {node_id} with updates: {updates}")
+    
     if system.reignite_local_engine(updates):
         return {"success": True, "message": f"Engine on {node_id} re-ignited with new tactical dials"}
     else:
-        raise HTTPException(status_code=500, detail="Engine re-ignition failed")
+        return {"success": False, "message": "Engine re-ignition failed"}
 
 @app.get("/nodes/{node_id}/models", response_model=List[str])
 async def list_node_models(node_id: str):
     """
     Scan for available .gguf models on a specific node.
+    ALWAYS queries the target node's API endpoint (even if it's the local node).
+    Each node scans its own model_root_path from config when it receives this request.
     """
     if not system:
         raise HTTPException(status_code=503, detail="System not initialized")
     
-    # Logic to scan local filesystem if node is local
     config = system.config_manager.get_node(node_id)
     if not config:
-         raise HTTPException(status_code=404, detail="Node not found")
+        raise HTTPException(status_code=404, detail="Node not found")
     
-    model_root = config.model_root_path
-    if not model_root or not os.path.exists(model_root):
-        # Fallback for dev: check current dir models/
-        model_root = os.path.join(os.getcwd(), "models")
-        if not os.path.exists(model_root):
+    # Check if this request is FOR this node (not FROM this node)
+    if node_id == system.local_node_id:
+        # This node is being asked about its own models - scan local filesystem
+        model_root = config.model_root_path
+        
+        if not model_root or not os.path.exists(model_root):
+            logger.warning(f"Model root path not found for node {node_id}: {model_root}")
             return []
-
-    try:
-        models = [f for f in os.listdir(model_root) if f.endswith(".gguf")]
-        return models
-    except Exception as e:
-        logger.error(f"Failed to scan models at {model_root}: {e}")
-        return []
+        
+        try:
+            models = [f for f in os.listdir(model_root) if f.endswith(".gguf")]
+            logger.info(f"Found {len(models)} models in {model_root} for node {node_id}")
+            return sorted(models)
+        except Exception as e:
+            logger.error(f"Failed to scan {model_root} for node {node_id}: {e}")
+            return []
+    else:
+        # Forward request to the target node
+        try:
+            remote_url = f"http://{config.host}:{config.port}/nodes/{node_id}/models"
+            logger.info(f"Forwarding model query to remote node: {remote_url}")
+            
+            response = requests.get(remote_url, timeout=5)
+            response.raise_for_status()
+            
+            models = response.json()
+            logger.info(f"Received {len(models)} models from remote node {node_id}")
+            return models
+            
+        except requests.exceptions.Timeout:
+            logger.error(f"Timeout querying remote node {node_id} at {config.host}:{config.port}")
+            return []
+        except requests.exceptions.ConnectionError:
+            logger.error(f"Connection refused to remote node {node_id} at {config.host}:{config.port}")
+            return []
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"HTTP error from remote node {node_id}: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Failed to query models on remote node {node_id}: {e}")
+            return []
 
 # -------------------------------------------------------------------------
 # Agent Endpoints

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const CommanderChat = ({ data = [], onSend }) => {
+const CommanderChat = ({ data = [], onSend, stats = {} }) => {
     const [input, setInput] = useState('');
     const scrollRef = useRef(null);
 
@@ -27,7 +27,7 @@ const CommanderChat = ({ data = [], onSend }) => {
             {/* Header */}
             <div className="panel-header strategic-border" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <MessageSquare size={18} color="var(--accent-cyan)" />
-                <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>COMMANDER COMMS CHANNEL</h3>
+                <h3 style={{ margin: 0, color: 'var(--text-primary)' }}>THE COMMANDER</h3>
                 <div style={{ flex: 1 }} />
                 <div className="status-indicator live" />
             </div>
@@ -102,9 +102,29 @@ const CommanderChat = ({ data = [], onSend }) => {
                     borderTop: '1px solid var(--border-dim)',
                     background: 'var(--bg-panel)',
                     display: 'flex',
+                    flexDirection: 'column',
                     gap: '10px'
                 }}
             >
+                {/* Stats Bar - Like llama.cpp server */}
+                <div style={{
+                    display: 'flex',
+                    gap: '15px',
+                    fontSize: '10px',
+                    color: 'var(--text-secondary)',
+                    fontFamily: 'monospace',
+                    borderBottom: '1px solid var(--border-dim)',
+                    paddingBottom: '8px'
+                }}>
+                    <span>Node: <strong style={{ color: 'var(--accent-cyan)' }}>{stats.node || 'None'}</strong></span>
+                    <span>Model: <strong>{stats.model || 'N/A'}</strong></span>
+                    <span>Context: <strong>{stats.context || '0/0'}</strong></span>
+                    <span>Output: <strong>{stats.output || 0}</strong></span>
+                    <span>Speed: <strong style={{ color: 'var(--success)' }}>{(stats.toksPerSec || 0).toFixed(2)} t/s</strong></span>
+                </div>
+
+                {/* Input Field */}
+                <div style={{ display: 'flex', gap: '10px' }}>
                 <div style={{ position: 'relative', flex: 1 }}>
                     <span style={{
                         position: 'absolute',
@@ -138,6 +158,7 @@ const CommanderChat = ({ data = [], onSend }) => {
                 >
                     <Send size={18} />
                 </button>
+                </div>
             </form>
         </div>
     );

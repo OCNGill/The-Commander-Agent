@@ -6,7 +6,7 @@ relay:
   connection_timeout: 30
   storage_root: /gillsystems_zfs_pool/AI_storage/relay
 nodes:
-- id: node-main
+- id: Gillsystems-Main
   name: Gillsystems-Main
   host: 10.0.0.164
   port: 8000
@@ -25,7 +25,7 @@ nodes:
     ngl: 999
     fa: true
     extra_flags: ''
-- id: node-htpc
+- id: Gillsystems-HTPC
   name: Gillsystems-HTPC
   host: 10.0.0.42
   port: 8001
@@ -46,7 +46,7 @@ nodes:
     ngl: 40
     fa: true
     extra_flags: --cache-type-k q4_0 --cache-type-v q4_0
-- id: node-steamdeck
+- id: Gillsystems-Steam-Deck
   name: Gillsystems-Steam-Deck
   host: 10.0.0.139
   port: 8003
@@ -63,7 +63,7 @@ nodes:
     ngl: 32
     fa: true
     extra_flags: ''
-- id: node-laptop
+- id: Gillsystems-Laptop
   name: Gillsystems-Laptop
   host: 10.0.0.93
   port: 8002

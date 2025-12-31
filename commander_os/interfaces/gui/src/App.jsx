@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, Database, Shield, Zap, Cpu, Activity, Settings, RefreshCw, Power, Layout } from 'lucide-react';
+import { Terminal, Database, Shield, Zap, Cpu, Activity, Settings, RefreshCw, Power, Layout, BarChart3, Radio } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from './api/commander-api';
 import CommanderChat from './components/CommanderChat';
@@ -16,6 +16,9 @@ function App() {
   const [dials, setDials] = useState({ ctx: 4096, ngl: 32, fa: true, binary: 'go.exe', model_file: '' });
   const [availableModels, setAvailableModels] = useState([]);
   const [apiError, setApiError] = useState(null);
+  const [systemVersion, setSystemVersion] = useState('1.2.19');
+  const [activeTab, setActiveTab] = useState('control');
+  const [chatStats, setChatStats] = useState({ node: 'None', model: 'N/A', context: '0/0', output: 0, toksPerSec: 0.0 });
   const selectedNodeRef = React.useRef(null);
 
   const handleSelectNode = (node) => {
@@ -28,9 +31,16 @@ function App() {
     // Initial fetch to populate state
     const fetchInitial = async () => {
       try {
+        // Fetch version first
+        try {
+          const versionInfo = await api.getVersion();
+          setSystemVersion(versionInfo.version);
+        } catch (e) {
+          console.warn("Version fetch failed, using default");
+        }
         const nodeList = await api.listNodes();
         setNodes(nodeList);
-        const agentList = await api.listAgents(); // Fetch agents initially
+        const agentList = await api.listAgents();
         setAgents(agentList);
         const logs = await api.queryMemory(15);
         setTraffic(logs);
@@ -38,7 +48,7 @@ function App() {
         console.error("Initial fetch failed:", err);
         setApiError("STRATEGIC LINK FAILURE: THE HUB IS UNREACHABLE");
       } finally {
-        setLoading(false); // Ensure loading is set to false after initial fetch
+        setLoading(false);
       }
     };
     fetchInitial();
@@ -70,7 +80,13 @@ function App() {
           setAgents(snapshot.agents);
         }
       } else if (packet.type === 'new_messages') {
-        setTraffic(prev => [...packet.data.reverse(), ...prev].slice(0, 50));
+        // Deduplicate messages by ID before adding
+        setTraffic(prev => {
+          const newMsgs = packet.data.reverse();
+          const existingIds = new Set(prev.map(m => m.id));
+          const uniqueNew = newMsgs.filter(m => !existingIds.has(m.id));
+          return [...uniqueNew, ...prev].slice(0, 50);
+        });
       }
     });
 
@@ -84,13 +100,29 @@ function App() {
         ctx: selectedNode.ctx || 4096,
         ngl: selectedNode.ngl || 32,
         fa: selectedNode.fa !== undefined ? selectedNode.fa : true,
-        binary: selectedNode.model_file ? (selectedNode.binary || 'go.exe') : (selectedNode.binary || 'go.exe')
+        binary: selectedNode.binary || 'go.exe',
+        model_file: selectedNode.model_file || ''
+      });
+
+      // Update chat stats
+      setChatStats({
+        node: selectedNode.name || selectedNode.node_id,
+        model: selectedNode.model_file || 'N/A',
+        context: `0/${selectedNode.ctx || 4096}`,
+        output: 0,
+        toksPerSec: selectedNode.metrics?.tps || 0.0
       });
 
       // Fetch models for this node
       api.listModels(selectedNode.node_id)
-        .then(setAvailableModels)
+        .then(models => {
+          console.log(`Loaded ${models.length} models for ${selectedNode.node_id}:`, models);
+          setAvailableModels(models);
+        })
         .catch(err => console.error("Failed to load models for node:", err));
+    } else {
+      // No node selected - reset chat stats
+      setChatStats({ node: 'None', model: 'N/A', context: '0/0', output: 0, toksPerSec: 0.0 });
     }
   }, [selectedNode?.node_id]);
 
@@ -103,15 +135,6 @@ function App() {
       }
     } catch (err) {
       alert("Ignition sequence failure: " + err.message);
-    }
-  };
-
-  const handleCommand = async (text) => {
-    try {
-      await api.sendCommand(text);
-      // Command logged; Websocket will reflect it in traffic
-    } catch (err) {
-      console.error("Command failed:", err);
     }
   };
 
@@ -138,13 +161,39 @@ function App() {
     if (!selectedNode) return;
     try {
       const updates = {
-        ...dials,
-        model_file: selectedNode.model_file
+        ctx: dials.ctx,
+        ngl: dials.ngl,
+        fa: dials.fa,
+        binary: dials.binary,
+        model_file: dials.model_file
       };
       await api.reigniteNode(selectedNode.node_id, updates);
       alert(`Tactical Re-Ignition Successful: ${selectedNode.node_id} optimized.`);
     } catch (err) {
       alert("Hardware dial adjustment failed: " + err.message);
+    }
+  };
+
+  const handleCommand = async (text) => {
+    try {
+      await api.sendCommand(text);
+      
+      // Update chat stats to reflect the commanding node
+      // Find highest-ranking active node
+      const activeNodes = nodes.filter(n => n.status === 'ready' || n.status === 'online');
+      if (activeNodes.length > 0) {
+        activeNodes.sort((a, b) => (b.tps_benchmark || 0) - (a.tps_benchmark || 0));
+        const commandingNode = activeNodes[0];
+        setChatStats({
+          node: commandingNode.name || commandingNode.node_id,
+          model: commandingNode.model_file || 'N/A',
+          context: `0/${commandingNode.ctx || 4096}`,
+          output: 0,
+          toksPerSec: commandingNode.metrics?.tps || 0.0
+        });
+      }
+    } catch (err) {
+      console.error("Command failed:", err);
     }
   };
 
@@ -171,8 +220,8 @@ function App() {
         <div className="logo-section">
           <Shield className="glow-icon" color="var(--accent-cyan)" size={32} />
           <div className="title-block">
-            <h1 className="glow-text">THE COMMANDER OS</h1>
-            <span className="subtitle">ORCHESTRATION LAYER // PHASE 6 ACTIVE</span>
+            <h1 className="glow-text">GILLSYSTEMS COMMANDER OS</h1>
+            <span className="subtitle">STRATEGIC DASHBOARD // v{systemVersion}</span>
           </div>
         </div>
 
@@ -205,6 +254,24 @@ function App() {
           <div className="section-header">
             <Layout size={20} />
             <h2>INTELLIGENCE NODES</h2>
+            {selectedNode && (
+              <button 
+                className="deselect-btn"
+                onClick={() => setSelectedNode(null)}
+                style={{ 
+                  marginLeft: 'auto', 
+                  padding: '4px 10px', 
+                  fontSize: '0.7rem',
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--border-dim)',
+                  borderRadius: '4px',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer'
+                }}
+              >
+                VIEW ALL
+              </button>
+            )}
           </div>
           <div className="nodes-container">
             {nodes.map(node => (
@@ -231,12 +298,24 @@ function App() {
             ))}
           </div>
 
-          <CommanderChat data={traffic} onSend={handleCommand} />
-        </section>
+          {/* Node Control Panel - Below Nodes */}
+          <div className="tab-header">
+            <button 
+              className={`tab-btn ${activeTab === 'control' ? 'active' : ''}`}
+              onClick={() => setActiveTab('control')}
+            >
+              <Settings size={16} /> NODE CONTROL
+            </button>
+            <button 
+              className={`tab-btn ${activeTab === 'stats' ? 'active' : ''}`}
+              onClick={() => setActiveTab('stats')}
+            >
+              <BarChart3 size={16} /> STATS FOR NERDS
+            </button>
+          </div>
 
-        <section className="control-section">
           <AnimatePresence mode="wait">
-            {selectedNode ? (
+            {activeTab === 'control' && selectedNode ? (
               <motion.div
                 key={selectedNode.node_id}
                 initial={{ opacity: 0, x: 20 }}
@@ -312,7 +391,7 @@ function App() {
                   </div>
 
                   <div className="control-group">
-                    <label>MODEL SELECTOR</label>
+                    <label>LOCAL MODELS</label>
                     <div className="model-select-wrapper">
                       <Database size={18} />
                       <select
@@ -320,12 +399,28 @@ function App() {
                         value={dials.model_file}
                         onChange={(e) => setDials({ ...dials, model_file: e.target.value })}
                       >
-                        <option value={dials.model_file}>{dials.model_file}</option>
-                        {availableModels.filter(m => m !== dials.model_file).map(m => (
-                          <option key={m} value={m}>{m}</option>
-                        ))}
+                        {availableModels.length === 0 ? (
+                          <option value="">No models found - check model_root_path</option>
+                        ) : (
+                          <>
+                            {availableModels.map(m => (
+                              <option key={m} value={m}>{m}</option>
+                            ))}
+                          </>
+                        )}
                       </select>
-                      <RefreshCw size={14} className="spin-hover" />
+                      <RefreshCw 
+                        size={14} 
+                        className="spin-hover" 
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          if (selectedNode) {
+                            api.listModels(selectedNode.node_id)
+                              .then(setAvailableModels)
+                              .catch(err => console.error("Failed to refresh models:", err));
+                          }
+                        }}
+                      />
                     </div>
                   </div>
 
@@ -334,13 +429,101 @@ function App() {
                   </div>
                 </div>
               </motion.div>
-            ) : (
+            ) : activeTab === 'control' ? (
               <div className="empty-panel panel-container">
                 <Terminal size={48} color="var(--border-dim)" />
                 <p>SELECT A NODE TO ACCESS COMMAND DIALS</p>
               </div>
+            ) : null}
+
+            {activeTab === 'stats' && (
+              <motion.div
+                key="stats-tab"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="stats-panel panel-container"
+              >
+                <div className="panel-header strategic-border">
+                  <h3>STATS FOR NERDS</h3>
+                  <span className="live-indicator">● LIVE</span>
+                </div>
+                
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <span className="stat-label">SYSTEM STATUS</span>
+                    <span className="stat-value">{systemStatus.toUpperCase()}</span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">TOTAL NODES</span>
+                    <span className="stat-value">{nodes.length}</span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">ONLINE NODES</span>
+                    <span className="stat-value">{nodes.filter(n => n.status === 'ready' || n.status === 'online').length}</span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">TOTAL AGENTS</span>
+                    <span className="stat-value">{agents.length}</span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">MESSAGE BUFFER</span>
+                    <span className="stat-value">{traffic.length}</span>
+                  </div>
+                  <div className="stat-card">
+                    <span className="stat-label">VERSION</span>
+                    <span className="stat-value">v{systemVersion}</span>
+                  </div>
+                </div>
+
+                {selectedNode && (
+                  <div className="selected-node-stats">
+                    <h4>SELECTED: {selectedNode.name || selectedNode.node_id}</h4>
+                    <div className="node-detail-grid">
+                      <div className="detail-item">
+                        <span className="label">HOST</span>
+                        <code>{selectedNode.host || 'N/A'}</code>
+                      </div>
+                      <div className="detail-item">
+                        <span className="label">PORT</span>
+                        <code>{selectedNode.port || 'N/A'}</code>
+                      </div>
+                      <div className="detail-item">
+                        <span className="label">STATUS</span>
+                        <code className={selectedNode.status}>{selectedNode.status}</code>
+                      </div>
+                      <div className="detail-item">
+                        <span className="label">TPS BENCHMARK</span>
+                        <code>{selectedNode.tps_benchmark || 0}</code>
+                      </div>
+                      <div className="detail-item">
+                        <span className="label">CURRENT TPS</span>
+                        <code>{(selectedNode.metrics?.tps || 0).toFixed(2)}</code>
+                      </div>
+                      <div className="detail-item">
+                        <span className="label">LOAD %</span>
+                        <code>{(selectedNode.metrics?.load || 0).toFixed(1)}%</code>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="raw-state">
+                  <h4>CLUSTER NODE LIST (RAW)</h4>
+                  <pre>{JSON.stringify(nodes, null, 2)}</pre>
+                </div>
+              </motion.div>
             )}
           </AnimatePresence>
+        </section>
+
+        {/* Right Panel - Chat with The Commander */}
+        <section className="control-section">
+          <div className="section-header">
+            <Radio size={20} />
+            <h2>THE COMMANDER</h2>
+          </div>
+          <CommanderChat data={traffic} onSend={handleCommand} stats={chatStats} />
         </section>
       </main>
 
@@ -350,7 +533,7 @@ function App() {
           <span>ZFS POOL: ONLINE // /gillsystems_zfs_pool/AI_storage</span>
         </div>
         <div className="version-info">
-          v1.2.17 // GILLSYSTEMS STRATEGIC INTEL
+          v{systemVersion} // GILLSYSTEMS STRATEGIC INTEL
         </div>
       </footer>
     </div>

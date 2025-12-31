@@ -1,5 +1,5 @@
 """
-The-Commander: Node Manager
+Gillsystems Commander OS: Node Manager
 Manages the lifecycle of compute nodes.
 
 Handles:
@@ -27,7 +27,7 @@ class NodeManager:
     Manages compute nodes in the Commander ecosystem.
     """
     
-    def __init__(self, config_manager: ConfigManager, state_manager: StateManager, local_node_id: str = "node-main"):
+    def __init__(self, config_manager: ConfigManager, state_manager: StateManager, local_node_id: str = "Gillsystems-Main"):
         self.config = config_manager
         self.state = state_manager
         
@@ -41,6 +41,7 @@ class NodeManager:
     def start_all_nodes(self) -> None:
         """
         Initialize and register all nodes defined in configuration.
+    Starts ALL enabled nodes (Gillsystems-Main, Gillsystems-HTPC, Gillsystems-Steam-Deck, Gillsystems-Laptop).
         """
         logger.info("Initializing nodes from configuration...")
         
@@ -48,10 +49,8 @@ class NodeManager:
         for node_id, node_config in nodes.items():
             if node_config.enabled:
                 self.register_node(node_config)
-                
-                # If this is the local node, mark it as READY
-                if node_id == self._local_node_id:
-                    self.start_node(node_id)
+                # Start all enabled nodes (not just local node)
+                self.start_node(node_id)
         
         self._start_monitoring()
 
@@ -107,7 +106,7 @@ class NodeManager:
         2. Sort by tps_benchmark descending.
         3. Return the ID of the highest performing node.
         
-        In Phase 4, we prioritize Gillsystems-Main (node-main) and Gillsystems-HTPC (node-htpc).
+    In Phase 4, we prioritize Gillsystems-Main and Gillsystems-HTPC.
         """
         nodes_config = self.config.nodes
         ready_nodes = []
@@ -122,7 +121,7 @@ class NodeManager:
             return self._local_node_id
             
         # Sort by benchmark descending
-        # 130 (Main) > 60 (HTPC) > 30 (SteamDeck) > 9 (Laptop)
+    # 130 (Gillsystems-Main) > 60 (Gillsystems-HTPC) > 30 (Gillsystems-Steam-Deck) > 9 (Gillsystems-Laptop)
         sorted_nodes = sorted(ready_nodes, key=lambda n: n.tps_benchmark, reverse=True)
         
         best_node = sorted_nodes[0].id
@@ -198,17 +197,19 @@ class NodeManager:
 
     def _monitor_loop(self) -> None:
         """
-        Background loop to send heartbeat and prune stale nodes.
+        Background loop to maintain heartbeat.
+        Nodes stay READY once started until explicitly stopped.
+        NO automatic offline/pruning logic.
         """
         while not self._stop_event.is_set():
             try:
+                # Update heartbeat for local node
                 if self._local_node_id:
                     self.state.update_node_heartbeat(self._local_node_id)
                 
                 # Sync with Relay (Cluster Visibility)
                 self._sync_with_relay()
                 
-                self.state.prune_stale_components(timeout_seconds=30.0)
                 time.sleep(5)
                 
             except Exception as e:

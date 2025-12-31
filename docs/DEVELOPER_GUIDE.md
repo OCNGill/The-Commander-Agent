@@ -1,7 +1,7 @@
-# Developer Guide: Extending The-Commander
+# Developer Guide: Extending Gillsystems Commander OS
 
 ## **Architecture Overview**
-The-Commander is a hybrid Python/React application.
+Gillsystems Commander OS is a hybrid Python/React application.
 - **Backend (Python)**: Handles hardware orchestration, cluster networking, and persistent storage.
 - **Frontend (React)**: Handles strategic visualization and user command routing.
 
@@ -13,7 +13,7 @@ The Hub resides in `commander_os/interfaces/rest_api.py`.
 ## **2. Strategic GUI Components**
 The GUI is located in `commander_os/interfaces/gui/src/`.
 - **Adding a View**: Create a new `.jsx` component in `./components`. Use **Framer Motion** for tactical transitions.
-- **Global Styles**: Update `App.css` to maintain the "War Room" aesthetic (Dark mode, Cyan/Gold accents, Glow effects).
+- **Global Styles**: Update `App.css` to maintain the "Strategic Dashboard" aesthetic (Dark mode, Cyan/Gold accents, Glow effects).
 - **Icons**: Use the `lucide-react` library.
 
 ## **3. Real-time Telemetry (WebSockets)**

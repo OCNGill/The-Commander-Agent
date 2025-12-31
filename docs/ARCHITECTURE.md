@@ -1,7 +1,7 @@
-# System Architecture: The-Commander
+# System Architecture: Gillsystems Commander OS
 
 ## **Core Philosophy**
-The-Commander is built as an **Agentic Operating System**. It moves away from monolithic AI applications towards a distributed, modular, and authoritative orchestration layer.
+Gillsystems Commander OS is built as an **Agentic Operating System**. It moves away from monolithic AI applications towards a distributed, modular, and authoritative orchestration layer.
 
 ## **Component Breakdown**
 
@@ -29,7 +29,7 @@ The-Commander is built as an **Agentic Operating System**. It moves away from mo
 *   **Role**: Registry and logical management. NodeManager handles performance-weighted load balancing, while AgentManager manages role-based agent deployment.
 
 ## **Data Flow**
-1.  **Command**: User adjusts a dial in the War Room.
+1.  **Command**: User adjusts a dial in the Strategic Dashboard.
 2.  **Request**: GUI sends POST to `/nodes/{id}/engine`.
 3.  **Persist**: ConfigManager updates `relay.yaml`.
 4.  **Action**: SystemManager shuts down existing engine and re-ignites with new binary/flags.

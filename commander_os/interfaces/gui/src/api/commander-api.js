@@ -1,11 +1,20 @@
 /**
- * THE COMMANDER: STRATEGIC API CLIENT
+ * GILLSYSTEMS COMMANDER OS: STRATEGIC API CLIENT
  * Handles all communication with the SystemManager REST API.
  */
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 class CommanderAPI {
+    /**
+     * Fetch system version info.
+     */
+    async getVersion() {
+        const response = await fetch(`${API_BASE_URL}/version`);
+        if (!response.ok) throw new Error('Failed to fetch version');
+        return response.json();
+    }
+
     /**
      * Fetch full cluster status (system, nodes, agents).
      */

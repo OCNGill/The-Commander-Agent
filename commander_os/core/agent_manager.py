@@ -27,7 +27,7 @@ class AgentManager:
     Manages AI Agent processes and configurations.
     """
     
-    def __init__(self, config_manager: ConfigManager, state_manager: StateManager, local_node_id: str = "node-main"):
+    def __init__(self, config_manager: ConfigManager, state_manager: StateManager, local_node_id: str = "Gillsystems-Main"):
         self.config = config_manager
         self.state = state_manager
         

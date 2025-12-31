@@ -34,7 +34,7 @@ class SystemManager:
     Top-level orchestrator for The-Commander Operating System.
     """
 
-    def __init__(self, config_dir: Optional[str] = None, local_node_id: str = "node-main"):
+    def __init__(self, config_dir: Optional[str] = None, local_node_id: str = "Gillsystems-Main"):
         """
         Initialize the System Manager.
         
@@ -125,9 +125,6 @@ class SystemManager:
                    self.state_manager.update_node_metrics(self.local_node_id, {"tps": tps, "load": load})
                 else:
                    self.state_manager.update_node_metrics(self.local_node_id, {"tps": 0.0, "load": 0.0})
-                
-                # Prune stale components
-                self.state_manager.prune_stale_components()
                 
             except Exception as e:
                 logger.error(f"Telemetry loop error: {e}")
@@ -254,8 +251,8 @@ class SystemManager:
     def _start_relay_server(self):
         """Internal: Launch the relay server process."""
         # For now, we simulate starting unless explicitly on HTPC or local
-        # In a real cluster, only node-htpc would run this via its launcher script
-        if self.local_node_id != "node-htpc" and self.local_node_id != "node-main":
+        # In a real cluster, only Gillsystems-HTPC would run this via its launcher script
+        if self.local_node_id != "Gillsystems-HTPC" and self.local_node_id != "Gillsystems-Main":
             logger.info("Skipping relay server start for worker node.")
             return
 

@@ -1,7 +1,7 @@
 # User Guide & Troubleshooting
 
 ## **Prerequisites (The Golden Standard)**
-The **The-Commander** system requires a specific environment to function correctly, particularly to support the advanced AI binaries.
+The **Gillsystems Commander OS** system requires a specific environment to function correctly, particularly to support the advanced AI binaries.
 
 *   **Operating System**: Windows 10 or 11 (64-bit).
 *   **Python**: **Version 3.10.x is MANDATORY**.
