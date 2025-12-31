@@ -8,6 +8,7 @@ Version: 1.1.0
 """
 
 import logging
+import os
 from typing import List, Dict, Any, Optional
 from contextlib import asynccontextmanager
 import asyncio
@@ -176,6 +177,7 @@ class RoleUpdate(BaseModel):
 class EngineUpdate(BaseModel):
     ctx: Optional[int] = None
     ngl: Optional[int] = None
+    fa: Optional[bool] = None
     model_file: Optional[str] = None
 
 # -------------------------------------------------------------------------
@@ -288,6 +290,33 @@ async def reignite_node_engine(node_id: str, update: EngineUpdate):
         return {"success": True, "message": f"Engine on {node_id} re-ignited with new tactical dials"}
     else:
         raise HTTPException(status_code=500, detail="Engine re-ignition failed")
+
+@app.get("/nodes/{node_id}/models", response_model=List[str])
+async def list_node_models(node_id: str):
+    """
+    Scan for available .gguf models on a specific node.
+    """
+    if not system:
+        raise HTTPException(status_code=503, detail="System not initialized")
+    
+    # Logic to scan local filesystem if node is local
+    config = system.config_manager.get_node(node_id)
+    if not config:
+         raise HTTPException(status_code=404, detail="Node not found")
+    
+    model_root = config.model_root_path
+    if not model_root or not os.path.exists(model_root):
+        # Fallback for dev: check current dir models/
+        model_root = os.path.join(os.getcwd(), "models")
+        if not os.path.exists(model_root):
+            return []
+
+    try:
+        models = [f for f in os.listdir(model_root) if f.endswith(".gguf")]
+        return models
+    except Exception as e:
+        logger.error(f"Failed to scan models at {model_root}: {e}")
+        return []
 
 # -------------------------------------------------------------------------
 # Agent Endpoints

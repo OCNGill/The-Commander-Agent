@@ -30,7 +30,7 @@
 - [x] **Backend Integration**: Connected the GUI to the SystemManager REST API via tactical `CommanderAPI` client.
 - [x] **Real-time WebSockets**: Streaming node health and logs to the browser with zero-latency tactical broadcaster.
 - [x] **Dynamic Hardware Dials**: Real-time adjustment of Context (`-c`) and NGL (`-ngl`) per node with remote re-ignition.
-- [ ] **Strategic Model Selector**: Remote file browser to locate and swap `.gguf` files in the `model_root_path`.
+- [x] **Strategic Model Selector**: Remote file browser to locate and swap `.gguf` files with dedicated FA (Flash Attention) toggle.
 - [ ] **Binary Authority Control**: Graphical selection/renaming of backend binaries (e.g., `go.exe` vs `llama-server.exe`).
 - [ ] **Cluster Heartbeat**: Live visualizations of node TPS load and availability.
 - [ ] **Intelligence Log**: Web-based stream of the HTPC MessageStore.

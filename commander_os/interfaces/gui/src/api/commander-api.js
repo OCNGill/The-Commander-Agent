@@ -46,6 +46,12 @@ class CommanderAPI {
         return response.json();
     }
 
+    async listModels(nodeId) {
+        const response = await fetch(`${API_BASE_URL}/nodes/${nodeId}/models`);
+        if (!response.ok) throw new Error('Failed to list models');
+        return response.json();
+    }
+
     /**
      * List all active agents.
      */

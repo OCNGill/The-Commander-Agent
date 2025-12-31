@@ -206,8 +206,8 @@
 
 .input-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
 }
 
 .input-box {
@@ -231,20 +231,52 @@
   font-size: 1rem;
 }
 
-.model-selector {
+.toggle-box {
+  justify-content: flex-end;
+}
+
+.toggle-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-dim);
+  color: var(--text-secondary);
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.toggle-btn.active {
+  background: var(--success);
+  color: white;
+  border-color: var(--success);
+  box-shadow: 0 0 10px rgba(35, 134, 54, 0.3);
+}
+
+.model-select-wrapper {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-dim);
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   border-radius: 6px;
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.model-selector span {
+.strategic-select {
   flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
   font-family: monospace;
   font-size: 0.875rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.strategic-select option {
+  background: var(--bg-panel);
+  color: var(--text-primary);
 }
 
 .action-footer {

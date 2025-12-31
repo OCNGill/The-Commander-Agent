@@ -12,7 +12,8 @@ function App() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [traffic, setTraffic] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dials, setDials] = useState({ ctx: 4096, ngl: 32 });
+  const [dials, setDials] = useState({ ctx: 4096, ngl: 32, fa: true });
+  const [availableModels, setAvailableModels] = useState([]);
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -59,13 +60,19 @@ function App() {
     return () => socket.close();
   }, []);
 
-  // Sync dials when selectedNode changes
+  // Sync dials and models when selectedNode changes
   useEffect(() => {
     if (selectedNode) {
       setDials({
         ctx: selectedNode.ctx || 4096,
-        ngl: selectedNode.ngl || 32
+        ngl: selectedNode.ngl || 32,
+        fa: selectedNode.fa !== undefined ? selectedNode.fa : true
       });
+
+      // Fetch models for this node
+      api.listModels(selectedNode.node_id)
+        .then(setAvailableModels)
+        .catch(err => console.error("Failed to load models for node:", err));
     }
   }, [selectedNode]);
 
@@ -84,7 +91,11 @@ function App() {
   const handleSaveDials = async () => {
     if (!selectedNode) return;
     try {
-      await api.reigniteNode(selectedNode.node_id, dials);
+      const updates = {
+        ...dials,
+        model_file: selectedNode.model_file
+      };
+      await api.reigniteNode(selectedNode.node_id, updates);
       alert(`Tactical Re-Ignition Successful: ${selectedNode.node_id} optimized.`);
     } catch (err) {
       alert("Hardware dial adjustment failed: " + err.message);
@@ -189,14 +200,36 @@ function App() {
                           onChange={(e) => setDials({ ...dials, ngl: parseInt(e.target.value) })}
                         />
                       </div>
+                      <div className="input-box toggle-box">
+                        <span>FLASH ATTN</span>
+                        <button
+                          className={`toggle-btn ${dials.fa ? 'active' : ''}`}
+                          onClick={() => setDials({ ...dials, fa: !dials.fa })}
+                        >
+                          {dials.fa ? 'ON' : 'OFF'}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   <div className="control-group">
                     <label>MODEL ARMORY</label>
-                    <div className="model-selector">
+                    <div className="model-select-wrapper">
                       <Database size={18} />
-                      <span>{selectedNode.model_file || 'No Model Loaded'}.gguf</span>
+                      <select
+                        className="strategic-select"
+                        value={selectedNode.model_file}
+                        onChange={(e) => {
+                          const newModel = e.target.value;
+                          const updatedNode = { ...selectedNode, model_file: newModel };
+                          setSelectedNode(updatedNode);
+                        }}
+                      >
+                        <option value={selectedNode.model_file}>{selectedNode.model_file}</option>
+                        {availableModels.filter(m => m !== selectedNode.model_file).map(m => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
                       <RefreshCw size={14} className="spin-hover" />
                     </div>
                   </div>
