@@ -313,6 +313,12 @@ class SystemManager:
         engine = node_cfg.engine
         model_path = os.path.join(node_cfg.model_root_path, engine.model_file)
         
+        # Verify Binary Exists to prevent generic spawn errors
+        import shutil
+        if not os.path.exists(engine.binary) and not shutil.which(engine.binary):
+             logger.error(f"HARDWARE FAILURE: Engine binary '{engine.binary}' not found in {os.getcwd()} or PATH.")
+             return
+
         # Build command
         cmd = [
             engine.binary,

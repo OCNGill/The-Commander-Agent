@@ -47,7 +47,7 @@ nodes:
     fa: true
     extra_flags: --cache-type-k q4_0 --cache-type-v q4_0
 - id: node-steamdeck
-  name: Steam Deck Node
+  name: Gillsystems-Steam-Deck
   host: 10.0.0.139
   port: 8003
   enabled: true
@@ -64,7 +64,7 @@ nodes:
     fa: true
     extra_flags: ''
 - id: node-laptop
-  name: Laptop Node
+  name: Gillsystems-Laptop
   host: 10.0.0.93
   port: 8002
   enabled: true
