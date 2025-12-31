@@ -1,6 +1,6 @@
 # The-Commander: Relay Server Configuration
 # Static network topology - aligned to Authoritative Benchmarks
-# Version: 1.2.2
+# Version: 1.2.5 (Engine Calibration)
 
 relay:
   host: "10.0.0.42"  # Gillsystems-HTPC
@@ -20,6 +20,13 @@ nodes:
     tps_benchmark: 130 # Radeon 7900XTX
     roles: ["orchestrator", "commander", "heavy_compute"]
     model_root_path: "C:\\Models\\Working_Models\\"
+    engine:
+      binary: "go.exe"
+      model_file: "120-tokes-awesome-Qwen3-Coder-REAP-25B-A3B.Q4_K_S.gguf"
+      ctx: 131072
+      ngl: 999
+      fa: true
+      extra_flags: ""
     
   - id: "node-htpc"
     name: "Gillsystems-HTPC"
@@ -31,6 +38,13 @@ nodes:
     roles: ["storage", "memory", "relay", "worker"]
     storage_path: "/gillsystems_zfs_pool/AI_storage"
     model_root_path: "/home/gillsystems-htpc/Desktop/Models/"
+    engine:
+      binary: "./go"
+      model_file: "granite-4.0-h-tiny-UD-Q4_K_XL.gguf"
+      ctx: 114688
+      ngl: 40
+      fa: true
+      extra_flags: "--cache-type-k q4_0 --cache-type-v q4_0"
 
   - id: "node-steamdeck"
     name: "Steam Deck Node"
@@ -41,6 +55,13 @@ nodes:
     tps_benchmark: 30
     roles: ["worker"]
     model_root_path: "/home/deck/Desktop/Models/"
+    engine:
+      binary: "./go"
+      model_file: "granite-4.0-h-tiny-UD-Q4_K_XL.gguf"
+      ctx: 65536
+      ngl: 32
+      fa: true
+      extra_flags: ""
 
   - id: "node-laptop"
     name: "Laptop Node"
@@ -51,6 +72,13 @@ nodes:
     tps_benchmark: 9
     roles: ["worker"]
     model_root_path: "C:\\Users\\Gillsystems Laptop\\Desktop\\Models\\"
+    engine:
+      binary: "go.exe"
+      model_file: "granite-4.0-h-tiny-Q4_K_M.gguf"
+      ctx: 65536
+      ngl: 999
+      fa: true
+      extra_flags: ""
 
 logging:
   level: "INFO"

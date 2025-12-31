@@ -58,6 +58,7 @@ class SystemManager:
         )
         
         self.relay_process: Optional[subprocess.Popen] = None
+        self.engine_process: Optional[subprocess.Popen] = None
         
         logger.info(f"SystemManager initialized for node: {self.local_node_id}")
 
@@ -89,15 +90,17 @@ class SystemManager:
             return False
             
         try:
-            # 2. Start Relay Server (Only if configured for this node or locally)
-            # In Phase 4, we allow starting it for verification
+            # 2. Ignite Hardware Engine (llama.cpp)
+            self._ignite_hardware_engine()
+            
+            # 3. Start Relay Server (Only if configured for this node or locally)
             self._start_relay_server()
             
-            # 3. Start Nodes
+            # 4. Start Nodes
             logger.info("Starting sub-managers...")
             self.node_manager.start_all_nodes()
             
-            # 4. Start Agents
+            # 5. Start Agents
             self.agent_manager.start_all_agents()
             
             # 5. Finalize
@@ -127,6 +130,9 @@ class SystemManager:
             
             # 3. Stop Relay
             self._stop_relay_server()
+            
+            # 4. Shutdown Hardware
+            self._shutdown_hardware_engine()
             
         except Exception as e:
             logger.error(f"Error during shutdown: {e}")
@@ -193,3 +199,65 @@ class SystemManager:
                 self.relay_process.kill()
             self.relay_process = None
             logger.info("Relay Server stopped.")
+    def _ignite_hardware_engine(self):
+        """Internal: Launch the local hardware LLM backend."""
+        node_cfg = self.config_manager.get_node(self.local_node_id)
+        if not node_cfg or not node_cfg.engine:
+            logger.info(f"No hardware engine configured for node: {self.local_node_id}")
+            return
+
+        engine = node_cfg.engine
+        model_path = os.path.join(node_cfg.model_root_path, engine.model_file)
+        
+        # Build command
+        cmd = [
+            engine.binary,
+            "-m", model_path,
+            "-c", str(engine.ctx),
+            "-ngl", str(engine.ngl),
+            "--host", node_cfg.host,
+            "--port", str(node_cfg.port)
+        ]
+        
+        if engine.fa:
+            cmd.extend(["-fa", "on"])
+            
+        if engine.extra_flags:
+            # Simple split for extra flags
+            cmd.extend(engine.extra_flags.split())
+
+        logger.info(f"Igniting Hardware Engine: {' '.join(cmd)}")
+        
+        try:
+            # We run the engine in its own process group to avoid signal propagation issues
+            self.engine_process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0
+            )
+            
+            # Check if it started correctly
+            time.sleep(2) # Engines take a moment to load weights
+            if self.engine_process.poll() is not None:
+                _, err = self.engine_process.communicate()
+                logger.error(f"Hardware Engine failed to start: {err}")
+                return
+
+            logger.info(f"Hardware Engine ignited successfully (PID: {self.engine_process.pid})")
+            
+        except Exception as e:
+            logger.error(f"Critical failure during engine ignition: {e}")
+
+    def _shutdown_hardware_engine(self):
+        """Internal: Gracefully shut down the hardware engine."""
+        if self.engine_process:
+            logger.info("Shutting down Hardware Engine...")
+            self.engine_process.terminate()
+            try:
+                self.engine_process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                self.engine_process.kill()
+            self.engine_process = None
+            logger.info("Hardware Engine offline.")

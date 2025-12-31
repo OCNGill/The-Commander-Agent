@@ -75,6 +75,13 @@ class TestTUI:
         assert "coder" in output
         assert "node-main" in output
 
+        # 4. Logs
+        logs = tui.generate_logs_panel()
+        with console.capture() as capture:
+            console.print(logs)
+        output = capture.get()
+        assert "Cluster Traffic" in output
+
     def test_tui_empty_state_handling(self):
         """Verify TUI handles uninitialized system gracefully."""
         sm = MagicMock()

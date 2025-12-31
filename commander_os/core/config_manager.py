@@ -33,6 +33,17 @@ class RelayConfig:
 
 
 @dataclass
+class EngineConfig:
+    """LLM Engine (llama.cpp) configuration."""
+    binary: str = "go.exe"
+    model_file: str = ""
+    ctx: int = 4096
+    ngl: int = 999
+    fa: bool = True
+    extra_flags: str = ""
+
+
+@dataclass
 class NodeConfig:
     """Node configuration from relay.yaml."""
     id: str
@@ -43,6 +54,7 @@ class NodeConfig:
     max_agents: int = 4
     tps_benchmark: int = 0  # Tokens per second performance baseline
     model_root_path: str = ""  # Authoritative path for model files on this node
+    engine: Optional[EngineConfig] = None
 
 
 @dataclass
@@ -213,6 +225,18 @@ class ConfigManager:
             # Load nodes
             self._nodes = {}
             for node_data in data.get('nodes', []):
+                engine = None
+                if 'engine' in node_data:
+                    e_data = node_data['engine']
+                    engine = EngineConfig(
+                        binary=e_data.get('binary', 'go.exe'),
+                        model_file=e_data.get('model_file', ''),
+                        ctx=e_data.get('ctx', 4096),
+                        ngl=e_data.get('ngl', 999),
+                        fa=e_data.get('fa', True),
+                        extra_flags=e_data.get('extra_flags', '')
+                    )
+
                 node = NodeConfig(
                     id=node_data['id'],
                     name=node_data.get('name', node_data['id']),
@@ -221,7 +245,8 @@ class ConfigManager:
                     enabled=node_data.get('enabled', True),
                     max_agents=node_data.get('max_agents', 4),
                     tps_benchmark=node_data.get('tps_benchmark', 0),
-                    model_root_path=node_data.get('model_root_path', "")
+                    model_root_path=node_data.get('model_root_path', ""),
+                    engine=engine
                 )
                 self._nodes[node.id] = node
             

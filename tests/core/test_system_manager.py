@@ -38,8 +38,11 @@ class TestSystemManager:
 
     @pytest.fixture
     def system_manager(self, mock_config_manager, mock_node_manager, mock_agent_manager):
-        """Create SystemManager instance with mocks and patched relay start."""
-        with patch.object(SystemManager, '_start_relay_server'), patch.object(SystemManager, '_stop_relay_server'):
+        """Create SystemManager instance with mocks and patched relay/engine start."""
+        with patch.object(SystemManager, '_start_relay_server'), \
+             patch.object(SystemManager, '_stop_relay_server'), \
+             patch.object(SystemManager, '_ignite_hardware_engine'), \
+             patch.object(SystemManager, '_shutdown_hardware_engine'):
             yield SystemManager()
 
     def test_initialization(self, system_manager):

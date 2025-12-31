@@ -11,6 +11,7 @@ Version: 1.0.0
 """
 
 import time
+import os
 from datetime import datetime
 from typing import Optional, Dict, Any
 
@@ -24,6 +25,7 @@ from rich import box
 
 from commander_os.core.system_manager import SystemManager
 from commander_os.core.state import SystemStatus, ComponentStatus
+from commander_os.core.memory import MessageStore
 
 class CommanderTUI:
     """
@@ -35,6 +37,14 @@ class CommanderTUI:
         self.console = Console()
         self.layout = Layout()
         
+        # Initialize Memory Access if available
+        self.store = None
+        db_path = os.getenv("COMMANDER_DB_URL", "sqlite:///commander_memory.db")
+        try:
+            self.store = MessageStore(db_path)
+        except Exception as e:
+            logger.warning(f"TUI couldn't connect to MessageStore: {e}")
+        
     def make_layout(self) -> Layout:
         """Define the dashboard layout."""
         self.layout.split(
@@ -43,6 +53,10 @@ class CommanderTUI:
             Layout(name="footer", size=3),
         )
         self.layout["main"].split_row(
+            Layout(name="left_pane", ratio=1),
+            Layout(name="logs", ratio=1),
+        )
+        self.layout["left_pane"].split_column(
             Layout(name="nodes", ratio=1),
             Layout(name="agents", ratio=1),
         )
@@ -127,6 +141,31 @@ class CommanderTUI:
             
         return Panel(table, title="[bold white]Active Agents[/bold white]", border_style="green")
 
+    def generate_logs_panel(self) -> Panel:
+        """Create the recent messages log panel."""
+        if not self.store:
+            return Panel(Text("MessageStore Offline", style="dim red"), title="Recent Events")
+            
+        try:
+            msgs = self.store.query_messages(limit=20)
+            table = Table.grid(expand=True)
+            table.add_column(ratio=1)
+            
+            for m in msgs:
+                ts = datetime.fromtimestamp(m['timestamp']).strftime("%H:%M:%S")
+                # Truncate content for TUI
+                content = m['content'][:100] + "..." if len(m['content']) > 100 else m['content']
+                content = content.replace("\n", " ")
+                
+                table.add_row(
+                    Text.from_markup(
+                        f"[dim blue]{ts}[/] [bold green]{m['sender']}[/] -> [bold cyan]{m['role']}[/]: [white]{content}[/]"
+                    )
+                )
+            return Panel(table, title="[bold white]Cluster Traffic (Live)[/bold white]", border_style="magenta")
+        except Exception as e:
+            return Panel(Text(f"Error: {e}", style="red"), title="Recent Events")
+
     def generate_footer(self) -> Panel:
         """Create the footer with instructions."""
         return Panel(
@@ -144,6 +183,7 @@ class CommanderTUI:
                 self.layout["header"].update(self.generate_header())
                 self.layout["nodes"].update(self.generate_nodes_table())
                 self.layout["agents"].update(self.generate_agents_table())
+                self.layout["logs"].update(self.generate_logs_panel())
                 self.layout["footer"].update(self.generate_footer())
                 
                 time.sleep(1.0 / refresh_rate)
