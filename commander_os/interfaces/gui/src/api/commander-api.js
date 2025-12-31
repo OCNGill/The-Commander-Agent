@@ -25,6 +25,28 @@ class CommanderAPI {
     }
 
     /**
+     * Stop a specific node.
+     */
+    async stopNode(nodeId) {
+        const response = await fetch(`${API_BASE_URL}/nodes/${nodeId}/stop`, { method: 'POST' });
+        if (!response.ok) throw new Error('Failed to stop node');
+        return response.json();
+    }
+
+    /**
+     * Reignite a node's engine with new configurations.
+     */
+    async reigniteNode(nodeId, engineUpdates) {
+        const response = await fetch(`${API_BASE_URL}/nodes/${nodeId}/engine`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(engineUpdates)
+        });
+        if (!response.ok) throw new Error('Failed to reignite node engine');
+        return response.json();
+    }
+
+    /**
      * List all active agents.
      */
     async listAgents() {

@@ -146,6 +146,24 @@ class SystemManager:
             self.state_manager.set_system_status(SystemStatus.STOPPED)
             logger.info("System stopped")
 
+    def reignite_local_engine(self, engine_updates: Dict[str, Any]) -> bool:
+        """
+        Update engine config and restart the local hardware engine.
+        Used for dynamic hardware dial adjustments (Context, NGL).
+        """
+        logger.info(f"Re-igniting hardware engine on {self.local_node_id} with updates: {engine_updates}")
+        
+        # 1. Update Config (and persist to YAML)
+        if not self.config_manager.update_node_engine(self.local_node_id, engine_updates):
+            return False
+            
+        # 2. Shutdown existing engine if running
+        self._shutdown_hardware_engine()
+        
+        # 3. Ignite anew
+        self._ignite_hardware_engine()
+        return True
+
     def get_status_report(self) -> Dict[str, Any]:
         """
         Get a comprehensive system health report.

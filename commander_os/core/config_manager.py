@@ -533,6 +533,45 @@ class ConfigManager:
         logger.info(f"Deleted agent config: {agent_id}")
         return True
     
+    def update_node_engine(self, node_id: str, engine_updates: Dict[str, Any]) -> bool:
+        """
+        Update a node's engine configuration and persist to relay.yaml.
+        """
+        if node_id not in self._nodes:
+            logger.error(f"Cannot update engine for unknown node: {node_id}")
+            return False
+            
+        with self._lock:
+            node = self._nodes[node_id]
+            if not node.engine:
+                node.engine = EngineConfig()
+            
+            # Apply updates to dataclass
+            for key, value in engine_updates.items():
+                if hasattr(node.engine, key):
+                    setattr(node.engine, key, value)
+            
+            # Persist back to relay.yaml
+            try:
+                with open(self.relay_config_path, 'r') as f:
+                    data = yaml.safe_load(f)
+                
+                for n_data in data.get('nodes', []):
+                    if n_data['id'] == node_id:
+                        if 'engine' not in n_data:
+                            n_data['engine'] = {}
+                        n_data['engine'].update(engine_updates)
+                        break
+                
+                with open(self.relay_config_path, 'w') as f:
+                    yaml.dump(data, f, default_flow_style=False, sort_keys=False)
+                    
+                logger.info(f"Updated engine config for {node_id} and persisted to relay.yaml")
+                return True
+            except Exception as e:
+                logger.error(f"Failed to persist engine update for {node_id}: {e}")
+                return False
+
     # ===============================
     # Getter Properties
     # ===============================

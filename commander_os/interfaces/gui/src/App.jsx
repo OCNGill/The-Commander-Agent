@@ -12,6 +12,7 @@ function App() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [traffic, setTraffic] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dials, setDials] = useState({ ctx: 4096, ngl: 32 });
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -58,6 +59,16 @@ function App() {
     return () => socket.close();
   }, []);
 
+  // Sync dials when selectedNode changes
+  useEffect(() => {
+    if (selectedNode) {
+      setDials({
+        ctx: selectedNode.ctx || 4096,
+        ngl: selectedNode.ngl || 32
+      });
+    }
+  }, [selectedNode]);
+
   const handleIgnite = async () => {
     try {
       if (systemStatus === 'running') {
@@ -67,6 +78,16 @@ function App() {
       }
     } catch (err) {
       alert("Ignition sequence failure: " + err.message);
+    }
+  };
+
+  const handleSaveDials = async () => {
+    if (!selectedNode) return;
+    try {
+      await api.reigniteNode(selectedNode.node_id, dials);
+      alert(`Tactical Re-Ignition Successful: ${selectedNode.node_id} optimized.`);
+    } catch (err) {
+      alert("Hardware dial adjustment failed: " + err.message);
     }
   };
 
@@ -154,11 +175,19 @@ function App() {
                     <div className="input-grid">
                       <div className="input-box">
                         <span>CONTEXT SIZE</span>
-                        <input type="number" defaultValue={selectedNode.ctx || 4096} />
+                        <input
+                          type="number"
+                          value={dials.ctx}
+                          onChange={(e) => setDials({ ...dials, ctx: parseInt(e.target.value) })}
+                        />
                       </div>
                       <div className="input-box">
                         <span>GPU LAYERS (NGL)</span>
-                        <input type="number" defaultValue={selectedNode.ngl || 32} />
+                        <input
+                          type="number"
+                          value={dials.ngl}
+                          onChange={(e) => setDials({ ...dials, ngl: parseInt(e.target.value) })}
+                        />
                       </div>
                     </div>
                   </div>
@@ -173,7 +202,7 @@ function App() {
                   </div>
 
                   <div className="action-footer">
-                    <button className="apply-button">SAVE & RE-IGNITE</button>
+                    <button className="apply-button" onClick={handleSaveDials}>SAVE & RE-IGNITE</button>
                   </div>
                 </div>
               </motion.div>

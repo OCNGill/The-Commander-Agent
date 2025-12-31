@@ -173,6 +173,11 @@ class AgentConfigUpdate(BaseModel):
 class RoleUpdate(BaseModel):
     role: str
 
+class EngineUpdate(BaseModel):
+    ctx: Optional[int] = None
+    ngl: Optional[int] = None
+    model_file: Optional[str] = None
+
 # -------------------------------------------------------------------------
 # System Endpoints
 # -------------------------------------------------------------------------
@@ -265,6 +270,24 @@ async def stop_node(node_id: str):
         return {"success": True, "message": f"Node {node_id} stopped"}
     else:
         raise HTTPException(status_code=500, detail=f"Failed to stop node {node_id}")
+
+@app.post("/nodes/{node_id}/engine", response_model=ActionResponse)
+async def reignite_node_engine(node_id: str, update: EngineUpdate):
+    """
+    Update engine config and reignite the LLM backend.
+    """
+    if not system:
+        raise HTTPException(status_code=503, detail="System not initialized")
+    
+    # Check if this is local node or remote (Phase 6 focuses on Local Hub control)
+    if node_id != system.local_node_id:
+        raise HTTPException(status_code=501, detail="Remote node engine control not yet implemented in cluster-fabric")
+
+    updates = {k: v for k, v in update.dict().items() if v is not None}
+    if system.reignite_local_engine(updates):
+        return {"success": True, "message": f"Engine on {node_id} re-ignited with new tactical dials"}
+    else:
+        raise HTTPException(status_code=500, detail="Engine re-ignition failed")
 
 # -------------------------------------------------------------------------
 # Agent Endpoints
