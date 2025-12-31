@@ -1,0 +1,83 @@
+%% Version: 1.2.0
+%% Source: system_architecture_v1.1.0.mmd (created to preserve previous files; new version created instead of modifying existing files)
+%% Updated: System-level services placed below models; Deliverables block added for Artifact storage/management/presentation; Models are separate machines and swappable by Commander
+
+flowchart TB
+  %% Top-down system architecture: Control Plane -> Models -> System Services -> Deliverables
+
+  %% Control plane
+  subgraph ControlPlane["Control Plane"]
+    direction TB
+    Commander[Commander Orchestrator]
+    ModelPool[Model Pool Manager]
+  end
+
+  %% Model machines (separate physical nodes)
+  subgraph ModelsPool["Model Nodes (separate machines, swappable)"]
+    direction LR
+    M1["Model Node A\n(Architect)"]
+    M2["Model Node B\n(Coder)"]
+    M3["Model Node C\n(Reasoner)"]
+    M4["Model Node D\n(Synthesizer)"]
+    NoteModels["Models can be swapped by Commander to change sub-roles"]
+  end
+
+  %% System-level services (below the model layer)
+  subgraph SystemServices["System-level Services (Local Cluster)"]
+    direction TB
+    Telemetry[Telemetry Collector]
+    Logs[Logs & Traceability]
+    Monitoring[Monitoring & Telemetry]
+  end
+
+  %% Deliverables block: artifact storage, management, presentation
+  subgraph Deliverables["Deliverables & Presentation"]
+    direction TB
+    ArtifactStore[Artifact Registry / Storage]
+    ArtifactMgr[Artifact Management]
+    Presentation[Presentation / Delivery API]
+  end
+
+  %% External user/client
+  User[User / Client]
+
+  %% Flows: user interacts with commander
+  User --> Commander
+  Commander --> ModelPool
+
+  %% Model pool assigns models (separate machines)
+  ModelPool --> M1
+  ModelPool --> M2
+  ModelPool --> M3
+  ModelPool --> M4
+
+  %% Models produce Artifacts -> Deliverables
+  M1 -->|Artifacts| ArtifactStore
+  M2 -->|Artifacts| ArtifactStore
+  M3 -->|Artifacts| ArtifactStore
+  M4 -->|Artifacts| ArtifactStore
+
+  %% Models send telemetry/logs to system-level services
+  M1 -->|Telemetry| Telemetry
+  M2 -->|Telemetry| Telemetry
+  M3 -->|Telemetry| Telemetry
+  M4 -->|Telemetry| Telemetry
+  Telemetry --> Logs
+
+  %% Deliverables processing and presentation
+  ArtifactStore --> ArtifactMgr
+  ArtifactMgr --> Presentation
+  Presentation --> User
+
+  %% Commander can swap models / reassign sub-roles
+  Commander -.->|select / swap| ModelPool
+  ModelPool -.->|reassign role| M1
+  ModelPool -.->|reassign role| M2
+  ModelPool -.->|reassign role| M3
+  ModelPool -.->|reassign role| M4
+
+  %% Monitoring consumes logs
+  Logs --> Monitoring
+
+  %% Local-only policy note
+  LocalPolicy([Local-only: No cloud inference])-.->SystemServices
