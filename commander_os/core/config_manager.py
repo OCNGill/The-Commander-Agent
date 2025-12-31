@@ -42,6 +42,7 @@ class NodeConfig:
     enabled: bool = True
     max_agents: int = 4
     tps_benchmark: int = 0  # Tokens per second performance baseline
+    model_root_path: str = ""  # Authoritative path for model files on this node
 
 
 @dataclass
@@ -219,7 +220,8 @@ class ConfigManager:
                     port=node_data.get('port', 5556),
                     enabled=node_data.get('enabled', True),
                     max_agents=node_data.get('max_agents', 4),
-                    tps_benchmark=node_data.get('tps_benchmark', 0)
+                    tps_benchmark=node_data.get('tps_benchmark', 0),
+                    model_root_path=node_data.get('model_root_path', "")
                 )
                 self._nodes[node.id] = node
             

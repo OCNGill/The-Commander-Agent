@@ -1,6 +1,6 @@
 # The-Commander: Relay Server Configuration
 # Static network topology - aligned to Authoritative Benchmarks
-# Version: 1.2.1
+# Version: 1.2.2
 
 relay:
   host: "10.0.0.42"  # Gillsystems-HTPC
@@ -19,6 +19,7 @@ nodes:
     max_agents: 10
     tps_benchmark: 130 # Radeon 7900XTX
     roles: ["orchestrator", "commander", "heavy_compute"]
+    model_root_path: "C:\\Models\\Working_Models\\"
     
   - id: "node-htpc"
     name: "Gillsystems-HTPC"
@@ -29,6 +30,7 @@ nodes:
     tps_benchmark: 60  # Radeon 7600
     roles: ["storage", "memory", "relay", "worker"]
     storage_path: "/gillsystems_zfs_pool/AI_storage"
+    model_root_path: "/home/gillsystems-htpc/Desktop/Models/"
 
   - id: "node-steamdeck"
     name: "Steam Deck Node"
@@ -38,6 +40,7 @@ nodes:
     max_agents: 2
     tps_benchmark: 30
     roles: ["worker"]
+    model_root_path: "/home/deck/Desktop/Models/"
 
   - id: "node-laptop"
     name: "Laptop Node"
@@ -47,6 +50,7 @@ nodes:
     max_agents: 2
     tps_benchmark: 9
     roles: ["worker"]
+    model_root_path: "C:\\Users\\Gillsystems Laptop\\Desktop\\Models\\"
 
 logging:
   level: "INFO"

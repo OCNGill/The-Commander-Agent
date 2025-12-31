@@ -1,4 +1,4 @@
-# The-Commander: AI Agent Operating System
+# The-Commander: AI Agent Operating System (v1.2.4)
 
 **The-Commander** is a distributed orchestrator for managing a cluster of heterogeneous AI agents. It centralizes state, memory, and task lifecycle management while allowing decentralized execution across specific compute nodes.
 
@@ -8,17 +8,18 @@
 
 The system is designed for a multi-node worker topology with a central storage and relay authority. Compute is weighted towards the high-performance Main and HTPC nodes.
 
-| Node | Network Address | Hardware | Benchmark (t/s) | Description |
-|------|-----------------|----------|-----------------|-------------|
-| **Main** | `http://10.0.0.164:8000/` | Radeon 7900XTX | **130** | Orchestrator (The Commander) + Heart of Compute. |
-| **HTPC** | `http://10.0.0.42:8001/` | Radeon 7600 | **60** | Central storage auth + Message Relay hub. |
-| **SteamDeck** | `http://10.0.0.139:8003/` | Custom APU | **30** | Tertiary Worker (Light Jobs). |
-| **Laptop** | `http://10.0.0.93:8002/` | Integrated | **9** | Tertiary Worker (Minimal Load). |
+| Node | Physical Host | Hardware | Bench (t/s) | Model Root Path |
+|------|---------------|----------|-------------|-----------------|
+| **Main** | Gillsystems-Main | Radeon 7900XTX | **130** | `C:\Models\Working_Models\` |
+| **HTPC** | Gillsystems-HTPC | Radeon 7600 | **60** | `/home/gillsystems-htpc/Desktop/Models/` |
+| **SteamDeck** | Steam Deck | Custom APU | **30** | `/home/deck/Desktop/Models/` |
+| **Laptop** | Gillsystems-Laptop | Integrated | **9** | `C:\Users\Gillsystems Laptop\Desktop\Models\` |
 
 ### **Authoritative Storage (ZFS)**
-The **Gillsystems-HTPC** node (`gillsystems-htpc`) hosts the only dataset used by the system:
+The **Gillsystems-HTPC** node hosts the primary dataset used by the system:
 - **Mountpoint:** `/gillsystems_zfs_pool/AI_storage`
 - **Installation Root:** `/home/gillsystems-htpc/`
+- **Central Memory:** `commander_memory.db` (SQLite + GZIP)
 
 ---
 
@@ -26,61 +27,27 @@ The **Gillsystems-HTPC** node (`gillsystems-htpc`) hosts the only dataset used b
 
 Communication within the cluster is governed by the **Commander Protocol**, a strict message/task envelope system that prevents architectural drift.
 
-- **The Commander:** The authoritative initializer and orchestrator meta-agent (Priority 0).
-- **Hierarchy:** Commander -> Architect -> Coder/Reasoner -> Synthesizer.
-- **Protocol Envelopes:** Every message is wrapped in a `MessageEnvelope` (UUID, Timestamp, Sender/Recipient, Task ID, Priority, Payload).
+- **Standard Envelopes:** All traffic uses `MessageEnvelope` (UUID, Timestamp, Sender/Recipient, Task ID, Priority, GZIP Payload).
+- **Intelligent Routing:** Node selection is weighted by TPS benchmarks to maximize throughput.
+- **Relay Hub:** Centralized message processing and persistence on the HTPC node.
 
 ---
 
-## **Extensible Memory System**
+## **Quick Start (War Room)**
 
-The-Commander utilizes an extensible persistent memory system backed by SQLite via SQLAlchemy.
-
-- **Flexibility:** The schema includes a `metadata_json` column for storing arbitrary agent state or task context.
-- **Efficiency:** Message content is GZIP compressed at rest.
-- **Searchable:** Full indices on Task ID, Sender, and Content Hash (SHA-256).
-
----
-
-## **Flow Diagram**
-
-```mermaid
-graph TD
-    subgraph Gillsystems-Main [10.0.0.164:8000]
-        C[The Commander] --> SM[System Manager]
-    end
-
-    subgraph HTPC [10.0.0.42:8001]
-        R[Relay Server]
-        M[Persistent Memory / SQLite]
-        Z[(ZFS Dataset / AI_storage)]
-    end
-
-    subgraph Workers [Laptop/SteamDeck]
-        A1[Agent 1 - Coder]
-        A2[Agent 2 - Reasoner]
-    end
-
-    C -- Orchestrates --> SM
-    SM -- Enforces Protocol --> R
-    A1 -- Routes via --> R
-    R -- Commits to --> M
-    M -- Persists on --> Z
-    C -- Retrieves Task History --> M
-```
-
----
-
-## **Quick Start**
-
-1. **Bootstrap Core Managers:**
+1. **Start the Hub (HTPC):**
    ```bash
-   # System starts by loading relay.yaml/roles.yaml from HTPC root
-   uvicorn commander_os.interfaces.rest_api:app --port 8000
+   python main.py hub --port 8001
    ```
-2. **Execute Tests:**
+2. **Start the Engine (Any Node):**
    ```bash
-   python -m pytest tests/ -v
+   python main.py engine --node node-main
+   ```
+3. **Launch the Dashboard:**
+   ```bash
+   python main.py war-room
    ```
 
-*Property of Gillsystems. Alignment is Mandatory.*
+---
+
+*Property of Gillsystems. 7D Agile methodology enforced. Alignment is Absolute.*
