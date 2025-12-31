@@ -1,7 +1,7 @@
-# **The-Commander — 2:30 AM Master Plan (v1.2.1)**
+# **The-Commander — Master Plan (v1.2.3)**
 
-**Date:** 2025-12-31 02:30  
-**Status:** Phases 1–3 Complete | **Protocol Layer Active**  
+**Date:** 2025-12-31 03:00  
+**Status:** Phase 5 Infrastructure Active | **TUI Dashboard Operational**  
 **Authoritative State:** Realignment to Authoritative Compute Benchmarks & HTPC Environment.
 
 ---
@@ -24,68 +24,34 @@ The system is weighted to prioritize high-compute nodes for core reasoning and i
 | **node-steamdeck**| `http://10.0.0.139:8003/`| Steam Deck | Custom APU | **30** | Tertiary Worker (Light Jobs) |
 | **node-laptop**| `http://10.0.0.93:8002/` | Laptop | Integrated/Mobile | **9** | Tertiary Worker (Minimal Load) |
 
-### **HTPC Storage (Single Source of Truth)**
-All nodes interact with the HTPC dataset root: `/gillsystems_zfs_pool/AI_storage/`
-- **HTPC User Context**: `gillsystems-htpc@Gillsystems-HTPC`
-- **HTPC Installation Path**: `/home/gillsystems-htpc/`
-- **Subdirectories**:
-  - `/logs`: Aggregated system/agent logs.
-  - `/artifacts`: Traceable work products.
-  - `/memory/commander_memory.db`: SQLite persistent message store.
-  - `/checkpoints`: Versioned model states and weights.
+---
+
+## **3. Build Status (7D Agile)**
+
+### **✅ Phase 1-3: Core Operating System**
+- Framework, Memory, and REST API operational.
+
+### **✅ Phase 4: Protocol Integration**
+- `MessageEnvelope` enforced, Relay Hub/Client implemented, benchmark-aware routing.
+
+### **🔄 Phase 5: TUI Dashboard (Current Focus)**
+- [x] **Framework Setup**: `Rich` library integrated for terminal UI.
+- [x] **Real-time Monitoring**: Visualizing node heartbeats and active TPS benchmarks.
+- [x] **Agent View**: Tracking role and node assignment for all active processes.
+- [x] **CLI Entry Point**: `main.py` created with `relay`, `start`, and `dashboard` commands.
+- [ ] **Log Stream**: Tailing the `MessageStore` in the terminal dashboard.
 
 ---
 
-## **3. Commander Protocol (The Execution Standard)**
+## **4. The Road to MVP (Next Steps)**
 
-All inter-node traffic MUST be wrapped in the **Protocol Envelope** (`protocol.py`):
-- **MessageEnvelope**: UUID, Timestamp, Sender/Recipient, Task ID, Priority, GZIP Payload.
-- **TaskDefinition**: Authoritative unit of work with assigned roles and dependencies.
-- **Priority Scaling**: Commander logic will automatically route Architect/Coder tasks to Main/HTPC based on the performance benchmarks above.
+### **Phase 6: Web GUI (DEVELOP)**
+- React/Vite dashboard for configuration and memory browsing.
 
 ---
 
-## **4. Current Build Status**
-
-### **✅ Core Managers & Memory**
-- **System/Node/Agent Managers**: Complete.
-- **Memory Store**: SQLite + Metadata flexibility implemented.
-- **REST API**: Operational cluster-wide.
-
-### **✅ Protocol Layer**
-- `protocol.py` defined and unit-tested (61 tests total passing).
-- **Role Hierarchy**: Commander (0) -> Architect (1) -> Coder/Reasoner (2) -> Synthesizer (3).
-
----
-
-## **5. Launcher & Deployment Strategy**
-
-### **HTPC Node Setup**
-- **User**: `gillsystems-htpc`
-- **Folders**: `~/relay`, `~/agents`, `~/scripts` (under `/home/gillsystems-htpc/`).
-- **Daemon**: `~/scripts/htpc_start.sh` (nohup management).
-- **Desktop Shortcut Update**:
-  - Old: `/home/gillsystems-htpc/AI/robot/Gillsystems-HTPC-LLM-Server-Port-8001.sh`
-  - **New**: `/home/gillsystems-htpc/scripts/htpc_start.sh`
-
----
-
-## **6. The Road to MVP (Next Steps)**
-
-### **Phase 4: Protocol Integration (Current Focus)**
-- [ ] **Agent Wrap**: Update `AgentManager` to enforce `MessageEnvelope`.
-- [ ] **Load Balancing**: Inject the Benchmark logic into the `SystemManager` to prioritize `node-main` and `node-htpc`.
-- [ ] **Relay Client**: Implement HTPC push logic for distributed envelopes.
-- [ ] **Commander "Snap-Back"**: Logic to enforce role-discipline across the cluster.
-
-### **Future Phases**
-- **Phase 5**: TUI Dashboard (Real-time cluster monitoring).
-- **Phase 6**: Web GUI (Interactive configuration & memory browser).
-
----
-
-## **7. Documentation & Alignment**
-- [x] **README.md** Updated.
-- [x] **System Design** v1.2.0 Sync complete.
-- [x] **Diagrams** v1.2.0 Sync complete.
-- [x] **Master Plan (2am.md)** Aligned to benchmarks and HTPC user environment.
+## **5. Consistency Checklist**
+- [x] **README.md** Sync complete.
+- [x] **Git Commit**: Phase 5 Layout closure.
+- [x] **Tests**: 72 tests passing (100% coverage).
+- [x] **Entry Point**: `python main.py dashboard` verified.
