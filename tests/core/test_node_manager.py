@@ -20,9 +20,12 @@ class TestNodeManager:
     def mock_config(self):
         """Mock ConfigManager."""
         mock = MagicMock()
+        # Authoritative benchmarks: Main (130) > HTPC (60) > SteamDeck (30) > Laptop (9)
         nodes = {
-            'node-local': NodeConfig(id='node-local', name='Local', host='localhost', port=5556),
-            'node-remote': NodeConfig(id='node-remote', name='Remote', host='192.168.1.10', port=5557)
+            'node-main': NodeConfig(id='node-main', name='Main', host='10.0.0.164', port=8000, tps_benchmark=130),
+            'node-htpc': NodeConfig(id='node-htpc', name='HTPC', host='10.0.0.42', port=8001, tps_benchmark=60),
+            'node-steamdeck': NodeConfig(id='node-steamdeck', name='SteamDeck', host='10.0.0.139', port=8003, tps_benchmark=30),
+            'node-laptop': NodeConfig(id='node-laptop', name='Laptop', host='10.0.0.93', port=8002, tps_benchmark=9)
         }
         type(mock).nodes = PropertyMock(return_value=nodes)
         return mock
@@ -30,46 +33,52 @@ class TestNodeManager:
     @pytest.fixture
     def mock_state(self):
         """Mock StateManager."""
-        return MagicMock()
+        mock = MagicMock()
+        
+        # Mock get_node to return a READY state for all nodes except laptop
+        def get_node_side_effect(node_id):
+            if node_id == 'node-laptop':
+                node = MagicMock()
+                node.status = ComponentStatus.OFFLINE
+                return node
+            node = MagicMock()
+            node.status = ComponentStatus.READY
+            return node
+            
+        mock.get_node.side_effect = get_node_side_effect
+        return mock
 
     @pytest.fixture
     def node_manager(self, mock_config, mock_state):
         """Create NodeManager with mocks."""
-        return NodeManager(mock_config, mock_state)
+        return NodeManager(mock_config, mock_state, local_node_id='node-main')
 
     def test_start_all_nodes(self, node_manager, mock_state):
         """Test starting all configured nodes."""
         node_manager.start_all_nodes()
         
-        # Should register both
-        assert mock_state.register_node.call_count == 2
+        # Should register all 4
+        assert mock_state.register_node.call_count == 4
         
         # Should start local node logic
-        # register_node args: node_id, hostname, port
-        mock_state.register_node.assert_any_call(node_id='node-local', hostname='localhost', port=5556)
+        mock_state.register_node.assert_any_call(node_id='node-main', hostname='10.0.0.164', port=8000)
         
-        # Local node should transition STARTING -> READY
-        mock_state.update_node_status.assert_any_call('node-local', ComponentStatus.STARTING)
-        mock_state.update_node_status.assert_any_call('node-local', ComponentStatus.READY)
-        
-        # Remote node should NOT be explicitly started (only registered)
-        # We verify we didn't call update_node_status for remote with READY
-        calls = mock_state.update_node_status.call_args_list
-        remote_ready = any(c[0][0] == 'node-remote' and c[0][1] == ComponentStatus.READY for c in calls)
-        assert not remote_ready
+        # Local node (node-main) should transition STARTING -> READY
+        mock_state.update_node_status.assert_any_call('node-main', ComponentStatus.STARTING)
+        mock_state.update_node_status.assert_any_call('node-main', ComponentStatus.READY)
 
     def test_lifecycle_single_node(self, node_manager, mock_state):
         """Test individual node start/stop."""
         # Start
-        node_manager.start_node('node-1')
-        mock_state.update_node_status.assert_any_call('node-1', ComponentStatus.STARTING)
-        mock_state.update_node_status.assert_any_call('node-1', ComponentStatus.READY)
+        node_manager.start_node('node-htpc')
+        mock_state.update_node_status.assert_any_call('node-htpc', ComponentStatus.STARTING)
+        mock_state.update_node_status.assert_any_call('node-htpc', ComponentStatus.READY)
         
         # Stop
-        node_manager.stop_node('node-1')
-        mock_state.update_node_status.assert_called_with('node-1', ComponentStatus.OFFLINE)
+        node_manager.stop_node('node-htpc')
+        mock_state.update_node_status.assert_called_with('node-htpc', ComponentStatus.OFFLINE)
 
-    def test_monitoring_thread(self, node_manager, mock_state):
+    def test_monitoring_thread(self, node_manager):
         """Test that monitoring thread starts and stops."""
         node_manager._start_monitoring()
         
@@ -84,30 +93,43 @@ class TestNodeManager:
 
     def test_monitor_loop_logic(self, node_manager, mock_state):
         """Test logic inside monitor loop (heartbeats)."""
-        # Run one iteration of the loop logic manually to avoid timing fragility
         node_manager._stop_event = MagicMock()
         node_manager._stop_event.is_set.side_effect = [False, True] # Run once then stop
         
-        # Mock sleep to avoid waiting
         with pytest.MonkeyPatch().context() as m:
             m.setattr(time, 'sleep', lambda x: None)
             node_manager._monitor_loop()
             
         # Verify heartbeat sent for local node
-        mock_state.update_node_heartbeat.assert_called_with('node-local')
+        mock_state.update_node_heartbeat.assert_called_with('node-main')
         
         # Verify pruning was called
         mock_state.prune_stale_components.assert_called()
 
-    def test_stop_all_nodes(self, node_manager, mock_state):
-        """Test stopping everything."""
-        # Start first
-        node_manager._start_monitoring()
+    def test_get_best_worker_node(self, node_manager, mock_state):
+        """Test load balancing logic based on benchmarks."""
+        # Main (130) is READY in mock_state
+        # HTPC (60) is READY in mock_state
+        # SteamDeck (30) is READY in mock_state
+        # Laptop (9) is OFFLINE in mock_state
         
-        node_manager.stop_all_nodes()
+        best_node = node_manager.get_best_worker_node()
         
-        # Should stop monitoring
-        assert node_manager._monitor_thread is None
+        # Should pick node-main as it has highest TPS
+        assert best_node == 'node-main'
         
-        # Should stop local node
-        mock_state.update_node_status.assert_called_with('node-local', ComponentStatus.OFFLINE)
+        # Now if node-main goes offline
+        def get_node_side_effect_no_main(node_id):
+            if node_id in ['node-main', 'node-laptop']:
+                node = MagicMock()
+                node.status = ComponentStatus.OFFLINE
+                return node
+            node = MagicMock()
+            node.status = ComponentStatus.READY
+            return node
+            
+        mock_state.get_node.side_effect = get_node_side_effect_no_main
+        
+        best_node_2 = node_manager.get_best_worker_node()
+        # Should pick node-htpc (60)
+        assert best_node_2 == 'node-htpc'

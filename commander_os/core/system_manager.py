@@ -8,13 +8,14 @@ Coordinating:
 - Node & Agent Managers
 - Relay Server
 
-Version: 1.2.0 (Protocol Integrated)
+Version: 1.2.2 (Relay Integration)
 """
 
 import logging
 import time
 import subprocess
 import sys
+import os
 from pathlib import Path
 from typing import Dict, Any, Optional
 
@@ -36,7 +37,7 @@ class SystemManager:
         
         Args:
             config_dir: Optional path to configuration directory.
-            local_node_id: ID of the local node (e.g. 'node-main', 'node-htpc').
+            local_node_id: ID of the local node.
         """
         self.local_node_id = local_node_id
         
@@ -44,8 +45,12 @@ class SystemManager:
         self.config_manager = ConfigManager(config_dir)
         self.state_manager = StateManager()
         
-        # 2. Initialize Sub-Managers (they depend on config/state)
-        self.node_manager = NodeManager(self.config_manager, self.state_manager)
+        # 2. Initialize Sub-Managers
+        self.node_manager = NodeManager(
+            self.config_manager, 
+            self.state_manager, 
+            local_node_id=self.local_node_id
+        )
         self.agent_manager = AgentManager(
             self.config_manager, 
             self.state_manager, 
@@ -62,7 +67,6 @@ class SystemManager:
         """
         logger.info("Bootstrapping system...")
         
-        # Load all configurations
         if not self.config_manager.load_all():
             logger.critical("Failed to load configurations. Aborting bootstrap.")
             self.state_manager.set_system_status(SystemStatus.ERROR)
@@ -73,11 +77,7 @@ class SystemManager:
 
     def start_system(self) -> bool:
         """
-        Start the entire system:
-        1. Bootstrap (load configs)
-        2. Start Relay Server
-        3. Start Node Managers (which start Agents)
-        4. Set System Status -> RUNNING
+        Start the entire system.
         """
         if self.state_manager.system_status == SystemStatus.RUNNING:
             logger.warning("System is already running")
@@ -85,19 +85,19 @@ class SystemManager:
             
         self.state_manager.set_system_status(SystemStatus.STARTING)
         
-        # 1. Bootstrap
         if not self.bootstrap():
             return False
             
         try:
-            # 2. Start Relay Server (Mock/Real logic here)
+            # 2. Start Relay Server (Only if configured for this node or locally)
+            # In Phase 4, we allow starting it for verification
             self._start_relay_server()
             
             # 3. Start Nodes
             logger.info("Starting sub-managers...")
             self.node_manager.start_all_nodes()
             
-            # 4. Start Agents (managed by Node Manager mostly, but we trigger if centralized)
+            # 4. Start Agents
             self.agent_manager.start_all_agents()
             
             # 5. Finalize
@@ -143,7 +143,44 @@ class SystemManager:
 
     def _start_relay_server(self):
         """Internal: Launch the relay server process."""
-        logger.info("Relay Server started (simulated)")
+        # For now, we simulate starting unless explicitly on HTPC or local
+        # In a real cluster, only node-htpc would run this via its launcher script
+        if self.local_node_id != "node-htpc" and self.local_node_id != "node-main":
+            logger.info("Skipping relay server start for worker node.")
+            return
+
+        logger.info(f"Launching Relay Server on {self.local_node_id}...")
+        
+        try:
+            # Ensure we are in project root
+            root = self.config_manager.config_dir.parent
+            
+            # Use subprocess to run as a module
+            env = os.environ.copy()
+            env["PYTHONPATH"] = str(root)
+            
+            self.relay_process = subprocess.Popen(
+                [sys.executable, "-m", "commander_os.network.relay"],
+                cwd=str(root),
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            
+            # Give it a second to start
+            time.sleep(1)
+            if self.relay_process.poll() is not None:
+                _, err = self.relay_process.communicate()
+                raise Exception(f"Relay process exited immediately: {err}")
+                
+            logger.info("Relay Server process launched successfully.")
+            
+        except Exception as e:
+            logger.error(f"Failed to launch Relay Server: {e}")
+            # Don't raise here if we want system to continue in degraded mode, 
+            # but for Phase 4 we want it to work.
+            raise
 
     def _stop_relay_server(self):
         """Internal: Stop the relay server."""
@@ -155,3 +192,4 @@ class SystemManager:
             except subprocess.TimeoutExpired:
                 self.relay_process.kill()
             self.relay_process = None
+            logger.info("Relay Server stopped.")

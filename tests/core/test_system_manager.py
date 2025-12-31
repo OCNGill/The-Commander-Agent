@@ -19,6 +19,9 @@ class TestSystemManager:
         with patch('commander_os.core.system_manager.ConfigManager') as mock:
             instance = mock.return_value
             instance.load_all.return_value = True
+            # Mock config_dir.parent to return a valid path
+            instance.config_dir = MagicMock()
+            instance.config_dir.parent = MagicMock()
             yield instance
 
     @pytest.fixture
@@ -35,8 +38,9 @@ class TestSystemManager:
 
     @pytest.fixture
     def system_manager(self, mock_config_manager, mock_node_manager, mock_agent_manager):
-        """Create SystemManager instance with mocks."""
-        return SystemManager()
+        """Create SystemManager instance with mocks and patched relay start."""
+        with patch.object(SystemManager, '_start_relay_server'), patch.object(SystemManager, '_stop_relay_server'):
+            yield SystemManager()
 
     def test_initialization(self, system_manager):
         """Test proper initialization of components."""
@@ -79,8 +83,6 @@ class TestSystemManager:
         success = system_manager.start_system()
         
         assert success is True
-        # Should not call bootstrap again if we implement check (state manager status check)
-        # In current impl, we check status at top of start_system
         system_manager.config_manager.load_all.assert_not_called()
 
     def test_stop_system(self, system_manager, mock_node_manager, mock_agent_manager):
@@ -95,13 +97,12 @@ class TestSystemManager:
 
     def test_exception_handling(self, system_manager, mock_node_manager):
         """Test error handling during startup."""
-        # Simulate exception in sub-manager
         mock_node_manager.start_all_nodes.side_effect = Exception("Node failure")
         
         success = system_manager.start_system()
         
         assert success is False
-        assert system_manager.state_manager.system_status == SystemStatus.STOPPED  # Should recover to STOPPED via stop_system() call in catch block
+        assert system_manager.state_manager.system_status == SystemStatus.STOPPED
         
     def test_status_report(self, system_manager):
         """Test status report generation."""

@@ -41,6 +41,7 @@ class NodeConfig:
     port: int
     enabled: bool = True
     max_agents: int = 4
+    tps_benchmark: int = 0  # Tokens per second performance baseline
 
 
 @dataclass
@@ -217,7 +218,8 @@ class ConfigManager:
                     host=node_data.get('host', '127.0.0.1'),
                     port=node_data.get('port', 5556),
                     enabled=node_data.get('enabled', True),
-                    max_agents=node_data.get('max_agents', 4)
+                    max_agents=node_data.get('max_agents', 4),
+                    tps_benchmark=node_data.get('tps_benchmark', 0)
                 )
                 self._nodes[node.id] = node
             

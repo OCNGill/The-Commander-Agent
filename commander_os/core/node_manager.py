@@ -6,9 +6,9 @@ Handles:
 - Node startup/shutdown
 - Dynamic registration
 - Heartbeat monitoring
-- Resource tracking (stubbed for now)
+- Weighted routing (Load Balancing)
 
-Version: 1.1.0
+Version: 1.2.0 (Protocol Integrated)
 """
 
 import logging
@@ -26,16 +26,16 @@ class NodeManager:
     Manages compute nodes in the Commander ecosystem.
     """
     
-    def __init__(self, config_manager: ConfigManager, state_manager: StateManager):
+    def __init__(self, config_manager: ConfigManager, state_manager: StateManager, local_node_id: str = "node-main"):
         self.config = config_manager
         self.state = state_manager
         
         # Background monitoring
         self._monitor_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
-        self._local_node_id = "node-local"  # TODO: Determine from env/config real local ID
+        self._local_node_id = local_node_id
         
-        logger.info("NodeManager initialized")
+        logger.info(f"NodeManager initialized for node: {self._local_node_id}")
 
     def start_all_nodes(self) -> None:
         """
@@ -49,7 +49,6 @@ class NodeManager:
                 self.register_node(node_config)
                 
                 # If this is the local node, mark it as READY
-                # In a real distributed setup, we'd check hostname/IP
                 if node_id == self._local_node_id:
                     self.start_node(node_id)
         
@@ -75,8 +74,6 @@ class NodeManager:
             hostname=config.host,
             port=config.port
         )
-        # Initialize basic resources stub
-        # self.state.update_node_resources(...)
 
     def start_node(self, node_id: str) -> bool:
         """
@@ -85,8 +82,7 @@ class NodeManager:
         logger.info(f"Starting node: {node_id}")
         self.state.update_node_status(node_id, ComponentStatus.STARTING)
         
-        # Simulate startup delay/checks
-        # In reality: checking ports, disk space, Docker connectivity, etc.
+        # Simulate startup delay
         time.sleep(0.1)
         
         self.state.update_node_status(node_id, ComponentStatus.READY)
@@ -100,6 +96,37 @@ class NodeManager:
         logger.info(f"Stopping node: {node_id}")
         self.state.update_node_status(node_id, ComponentStatus.OFFLINE)
         return True
+
+    def get_best_worker_node(self, role_requirement: Optional[str] = None) -> str:
+        """
+        Determine the best node for a task based on authoritative tps_benchmarks.
+        
+        Logic: 
+        1. Filter for READY nodes.
+        2. Sort by tps_benchmark descending.
+        3. Return the ID of the highest performing node.
+        
+        In Phase 4, we prioritize Gillsystems-Main (node-main) and Gillsystems-HTPC (node-htpc).
+        """
+        nodes_config = self.config.nodes
+        ready_nodes = []
+        
+        for node_id, config in nodes_config.items():
+            state = self.state.get_node(node_id)
+            if state and state.status == ComponentStatus.READY:
+                ready_nodes.append(config)
+        
+        if not ready_nodes:
+            logger.warning("No READY nodes found. Defaulting to local node.")
+            return self._local_node_id
+            
+        # Sort by benchmark descending
+        # 130 (Main) > 60 (HTPC) > 30 (SteamDeck) > 9 (Laptop)
+        sorted_nodes = sorted(ready_nodes, key=lambda n: n.tps_benchmark, reverse=True)
+        
+        best_node = sorted_nodes[0].id
+        logger.info(f"Load Balancer selected best node: {best_node} (TPS: {sorted_nodes[0].tps_benchmark})")
+        return best_node
 
     def get_node_status(self, node_id: str) -> Dict[str, Any]:
         """
@@ -134,21 +161,14 @@ class NodeManager:
 
     def _monitor_loop(self) -> None:
         """
-        Background loop to:
-        1. Send heartbeat for local node
-        2. Prune stale remote nodes
+        Background loop to send heartbeat and prune stale nodes.
         """
         while not self._stop_event.is_set():
             try:
-                # 1. Heartbeat local node
                 if self._local_node_id:
                     self.state.update_node_heartbeat(self._local_node_id)
                 
-                # 2. Prune remote nodes (assuming 30s timeout)
-                # This ensures if a remote node crashes, we know
                 self.state.prune_stale_components(timeout_seconds=30.0)
-                
-                # Sleep interval
                 time.sleep(5)
                 
             except Exception as e:
