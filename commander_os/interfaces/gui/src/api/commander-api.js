@@ -101,6 +101,16 @@ class CommanderAPI {
         return response.json();
     }
 
+    async sendCommand(text) {
+        const response = await fetch(`${API_BASE_URL}/command`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text })
+        });
+        if (!response.ok) throw new Error('Failed to send command');
+        return response.json();
+    }
+
     /**
    * Subscribe to real-time tactical updates via WebSockets.
    */

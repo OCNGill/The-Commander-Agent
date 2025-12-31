@@ -80,7 +80,7 @@ echo [INFO] Ctrl+C to Terminate Backend.
 echo.
 
 set "PYTHONPATH=%ROOT_DIR%"
-"%VENV_PYTHON%" main.py war-room-web
+"%VENV_PYTHON%" main.py commander-gui-dashboard
 
 :: If we drop here, catch the error
 echo.

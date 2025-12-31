@@ -35,8 +35,11 @@ async def lifespan(app: FastAPI):
     global system
     logger.info("Initializing REST API...")
     
-    # Initialize System Manager (config load happens here)
-    system = SystemManager()
+    # Initialize SystemManager (config load happens here)
+    # CRITICAL: Use Env Var to determine Identity (injected by main.py)
+    node_id = os.getenv("COMMANDER_NODE_ID", "node-main")
+    logger.info(f"Initializing System Manager as: {node_id}")
+    system = SystemManager(local_node_id=node_id)
     
     # Auto-bootstrap on API launch? 
     # Usually better to let user explicit start, or bootstrap immediately.
@@ -189,6 +192,25 @@ class EngineUpdate(BaseModel):
 # -------------------------------------------------------------------------
 # System Endpoints
 # -------------------------------------------------------------------------
+
+class CommandRequest(BaseModel):
+    text: str
+
+@app.post("/command", response_model=ActionResponse)
+async def submit_command(cmd: CommandRequest):
+    """Submit a manual command to the system."""
+    if not system:
+        raise HTTPException(status_code=503, detail="System not initialized")
+    
+    if hasattr(system, 'memory_store'):
+        system.memory_store.add_message(
+            task_id="chat", 
+            sender="THE_COMMANDER", 
+            role="user", 
+            content=cmd.text
+        )
+        return {"success": True, "message": "Command logged"}
+    return {"success": False, "message": "Memory unavailable"}
 
 @app.post("/system/start", response_model=ActionResponse)
 async def start_system():

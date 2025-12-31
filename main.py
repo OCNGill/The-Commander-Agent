@@ -78,15 +78,73 @@ def war_room(node):
     except KeyboardInterrupt:
         sm.stop_system()
 
-@cli.command(name="war-room-web")
+@cli.command(name="commander-gui-dashboard")
 @click.option('--host', default='127.0.0.1', help='Host to bind API.')
 @click.option('--port', default=8000, help='Port to bind API.')
-def war_room_web(host, port):
-    """(WAR-ROOM-WEB) Start the Strategic REST API & Web Dashboard."""
+def commander_gui_dashboard(host, port):
+    """(COMMANDER-GUI) Start the Strategic REST API & Web Dashboard."""
     import uvicorn
+    import socket
+    from commander_os.core.config_manager import ConfigManager
+    
+    # Auto-Detect Identity based on IP/Host
+    # This prevents "Laptop" from acting as "Main"
+    click.echo("[IDENTITY] resolving local identity...")
+    
+    cm = ConfigManager()
+    try:
+        cm.load_relay_config()
+        hostname = socket.gethostname()
+        # Get all local IPs
+        local_ips = set()
+        try:
+             # Basic
+             local_ips.add(socket.gethostbyname(hostname))
+             # Detailed
+             for info in socket.getaddrinfo(hostname, None):
+                 local_ips.add(info[4][0])
+        except:
+            pass
+
+        target_node = 'node-main' # Default fallback
+        target_port = port # Default from CLI arg (8000)
+        found = False
+
+        # Check config against local IPs
+        for n_id, n_cfg in cm.nodes.items():
+            # Check Hostname match (case insensitive)
+            if n_cfg.name.lower() in hostname.lower() or n_cfg.id.lower() in hostname.lower():
+                 target_node = n_id
+                 target_port = n_cfg.port
+                 found = True
+                 break
+            # Check IP match
+            if n_cfg.host in local_ips:
+                 target_node = n_id
+                 target_port = n_cfg.port
+                 found = True
+                 break
+        
+        if found:
+            click.echo(f"[IDENTITY] DETECTED: {target_node} on Port {target_port}")
+            os.environ["COMMANDER_NODE_ID"] = target_node
+            # Override host/port if auto-detected?
+            # User wants strict ports. We obey config if found.
+            port = target_port 
+            # Host binding: 0.0.0.0 is safer for valid access
+            host = "0.0.0.0" 
+        else:
+             click.echo(f"[IDENTITY] UNKNOWN. Defaulting to {target_node}")
+             os.environ["COMMANDER_NODE_ID"] = target_node
+
+    except Exception as e:
+        click.echo(f"[IDENTITY] Detection failed: {e}. Defaulting to node-main.")
+        os.environ["COMMANDER_NODE_ID"] = "node-main"
+
     # Echo immediately before long imports/init
     click.echo(f"------------------------------------------------------------")
     click.echo(f"  IGNITING ORCHESTRATION HUB: http://{host}:{port}")
+    click.echo(f"  IDENTITY: {os.environ.get('COMMANDER_NODE_ID')}")
     click.echo(f"  VERSION: v1.2.17")
     click.echo(f"------------------------------------------------------------")
     

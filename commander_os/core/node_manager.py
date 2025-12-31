@@ -14,6 +14,7 @@ Version: 1.2.0 (Protocol Integrated)
 import logging
 import time
 import threading
+import requests
 from typing import Dict, List, Optional, Any
 
 from commander_os.core.config_manager import ConfigManager, NodeConfig
@@ -159,6 +160,42 @@ class NodeManager:
             self._monitor_thread = None
             logger.info("Node monitoring stopped")
 
+    def _sync_with_relay(self) -> None:
+        """
+        Pull global cluster state from the Relay High Command.
+        This ensures we see what the Relay sees (other nodes).
+        """
+        try:
+            if not hasattr(self.config, 'relay') or not self.config.relay:
+                return
+
+            relay_cfg = self.config.relay
+            # Skip if we ARE the relay (very basic check)
+            if relay_cfg.host in ["localhost", "127.0.0.1", "0.0.0.0"]:
+                 pass
+
+            proto = getattr(relay_cfg, 'protocol', 'http')
+            relay_url = f"{proto}://{relay_cfg.host}:{relay_cfg.port}"
+            
+            resp = requests.get(f"{relay_url}/nodes", timeout=2)
+            if resp.status_code == 200:
+                global_nodes = resp.json()
+                for r_node in global_nodes:
+                    nid = r_node.get('node_id')
+                    if nid and nid != self._local_node_id:
+                        self.state.register_node(
+                            node_id=nid,
+                            hostname=r_node.get('address', '').split(':')[0],
+                            port=int(r_node.get('address', '').split(':')[1]) if ':' in r_node.get('address','') else 8000,
+                            update_heartbeat=True 
+                        )
+                        metrics = r_node.get('metrics', {})
+                        self.state.update_node_metrics(nid, metrics)
+        except Exception:
+            pass
+
+
+
     def _monitor_loop(self) -> None:
         """
         Background loop to send heartbeat and prune stale nodes.
@@ -167,6 +204,9 @@ class NodeManager:
             try:
                 if self._local_node_id:
                     self.state.update_node_heartbeat(self._local_node_id)
+                
+                # Sync with Relay (Cluster Visibility)
+                self._sync_with_relay()
                 
                 self.state.prune_stale_components(timeout_seconds=30.0)
                 time.sleep(5)

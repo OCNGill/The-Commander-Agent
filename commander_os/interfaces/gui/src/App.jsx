@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Terminal, Database, Shield, Zap, Cpu, Activity, Settings, RefreshCw, Power, Layout } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from './api/commander-api';
-import TerminalLog from './components/TerminalLog';
+import CommanderChat from './components/CommanderChat';
 import DeploymentHUD from './components/DeploymentHUD';
 import './App.css';
 
@@ -103,6 +103,15 @@ function App() {
       }
     } catch (err) {
       alert("Ignition sequence failure: " + err.message);
+    }
+  };
+
+  const handleCommand = async (text) => {
+    try {
+      await api.sendCommand(text);
+      // Command logged; Websocket will reflect it in traffic
+    } catch (err) {
+      console.error("Command failed:", err);
     }
   };
 
@@ -222,7 +231,7 @@ function App() {
             ))}
           </div>
 
-          <TerminalLog data={traffic} />
+          <CommanderChat data={traffic} onSend={handleCommand} />
         </section>
 
         <section className="control-section">
@@ -303,7 +312,7 @@ function App() {
                   </div>
 
                   <div className="control-group">
-                    <label>MODEL ARMORY</label>
+                    <label>MODEL SELECTOR</label>
                     <div className="model-select-wrapper">
                       <Database size={18} />
                       <select
