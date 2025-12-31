@@ -1,6 +1,6 @@
 # The-Commander: Relay Server Configuration
 # Static network topology - aligned to Authoritative Benchmarks
-# Version: 1.2.5 (Engine Calibration)
+# Version: 1.2.6 (Context Calibration)
 
 relay:
   host: "10.0.0.42"  # Gillsystems-HTPC
@@ -58,7 +58,7 @@ nodes:
     engine:
       binary: "./go"
       model_file: "granite-4.0-h-tiny-UD-Q4_K_XL.gguf"
-      ctx: 65536
+      ctx: 43690 # 1/3 of 128K (131072)
       ngl: 32
       fa: true
       extra_flags: ""
@@ -75,7 +75,7 @@ nodes:
     engine:
       binary: "go.exe"
       model_file: "granite-4.0-h-tiny-Q4_K_M.gguf"
-      ctx: 65536
+      ctx: 32768 # Half of 64K (65536)
       ngl: 999
       fa: true
       extra_flags: ""
