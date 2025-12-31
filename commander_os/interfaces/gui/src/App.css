@@ -216,7 +216,8 @@
   gap: 0.5rem;
 }
 
-.input-box span {
+.input-box span,
+.input-hint {
   font-size: 0.7rem;
   color: var(--text-secondary);
 }

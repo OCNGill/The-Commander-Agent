@@ -12,7 +12,7 @@ function App() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [traffic, setTraffic] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dials, setDials] = useState({ ctx: 4096, ngl: 32, fa: true });
+  const [dials, setDials] = useState({ ctx: 4096, ngl: 32, fa: true, binary: 'go.exe' });
   const [availableModels, setAvailableModels] = useState([]);
 
   // Subscribe to real-time updates
@@ -66,7 +66,8 @@ function App() {
       setDials({
         ctx: selectedNode.ctx || 4096,
         ngl: selectedNode.ngl || 32,
-        fa: selectedNode.fa !== undefined ? selectedNode.fa : true
+        fa: selectedNode.fa !== undefined ? selectedNode.fa : true,
+        binary: selectedNode.model_file ? (selectedNode.binary || 'go.exe') : (selectedNode.binary || 'go.exe')
       });
 
       // Fetch models for this node
@@ -209,6 +210,19 @@ function App() {
                           {dials.fa ? 'ON' : 'OFF'}
                         </button>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="control-group">
+                    <label>BINARY AUTHORITY</label>
+                    <div className="input-box">
+                      <input
+                        type="text"
+                        value={dials.binary}
+                        onChange={(e) => setDials({ ...dials, binary: e.target.value })}
+                        placeholder="e.g. go.exe"
+                      />
+                      <span className="input-hint">Specify the backend binary for ignition.</span>
                     </div>
                   </div>
 

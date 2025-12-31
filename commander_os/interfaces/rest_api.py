@@ -179,6 +179,7 @@ class EngineUpdate(BaseModel):
     ngl: Optional[int] = None
     fa: Optional[bool] = None
     model_file: Optional[str] = None
+    binary: Optional[str] = None
 
 # -------------------------------------------------------------------------
 # System Endpoints
@@ -236,6 +237,8 @@ async def list_nodes():
                 node_data['model_file'] = config.engine.model_file
                 node_data['ctx'] = config.engine.ctx
                 node_data['ngl'] = config.engine.ngl
+                node_data['fa'] = config.engine.fa
+                node_data['binary'] = config.engine.binary
                 
         nodes.append(node_data)
     return nodes
