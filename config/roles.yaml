@@ -1,14 +1,34 @@
 # The-Commander: Role Definitions
 # Dynamic role configuration with override permissions
-# Version: 1.1.0
+# Version: 1.2.0 (Protocol Layer)
 
 roles:
+  commander:
+    name: "The Commander"
+    description: "Authoritative initializer and orchestrator meta-agent."
+    system_prompt_prefix: "You are The Commander. You orchestrate the system, prevent drift, and enforce protocol."
+    default_context_size: 32768
+    priority: 0  # Absolute highest priority
+    can_delegate_to:
+      - architect
+      - coder
+      - reasoner
+      - synthesizer
+    permissions:
+      - "system_lifecycle_control"
+      - "node_lifecycle_control"
+      - "agent_lifecycle_control"
+      - "task_definition"
+      - "context_injection"
+      - "drift_prevention"
+      - "protocol_enforcement"
+
   architect:
     name: "Architect"
     description: "High-level system design and task decomposition"
     system_prompt_prefix: "You are a senior software architect."
     default_context_size: 16384
-    priority: 1  # Highest priority for task routing
+    priority: 1
     can_delegate_to:
       - coder
       - reasoner

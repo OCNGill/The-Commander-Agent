@@ -1,34 +1,52 @@
 # The-Commander: Relay Server Configuration
 # Static network topology - immutable during runtime
-# Version: 1.1.0
+# Version: 1.2.0 (Aligned to Cluster Topology)
 
 relay:
-  host: "127.0.0.1"
-  port: 5555
-  protocol: "tcp"
-  heartbeat_interval: 5  # seconds
-  connection_timeout: 30  # seconds
+  host: "10.0.0.42"  # HTPC acts as central relay
+  port: 8001
+  protocol: "http"   # Moving to HTTP based on node definitions
+  heartbeat_interval: 5
+  connection_timeout: 30
+  storage_root: "/gillsystems_zfs_pool/AI_storage/relay"
 
 nodes:
-  # Default local node configuration
-  - id: "node-local"
-    name: "Local Development Node"
-    host: "127.0.0.1"
-    port: 5556
+  - id: "node-main"
+    name: "Gillsystems-Main"
+    host: "10.0.0.164"
+    port: 8000
+    enabled: true
+    max_agents: 10
+    roles: ["orchestrator", "commander"]
+    
+  - id: "node-htpc"
+    name: "HTPC"
+    host: "10.0.0.42"
+    port: 8001
+    enabled: true
+    max_agents: 10
+    roles: ["storage", "memory", "relay"]
+    storage_path: "/gillsystems_zfs_pool/AI_storage"
+
+  - id: "node-laptop"
+    name: "Laptop Node"
+    host: "10.0.0.93"
+    port: 8002
     enabled: true
     max_agents: 4
-    
-  # HTPC node configuration (optional, disabled by default)
-  - id: "node-htpc"
-    name: "HTPC Compute Node"
-    host: "192.168.1.100"  # Update with actual HTPC IP
-    port: 5557
-    enabled: false
-    max_agents: 6
+    roles: ["worker"]
+
+  - id: "node-steamdeck"
+    name: "Steam Deck Node"
+    host: "10.0.0.139"
+    port: 8003
+    enabled: true
+    max_agents: 2
+    roles: ["worker"]
 
 logging:
   level: "INFO"
   format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-  file: "logs/relay/relay.log"
+  file: "/gillsystems_zfs_pool/AI_storage/logs/relay.log"
   max_size_mb: 50
   backup_count: 5
