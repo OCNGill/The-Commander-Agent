@@ -1,8 +1,8 @@
-# **The-Commander — Master Plan (v1.2.5)**
+# **The-Commander — Master Plan (v1.2.8)**
 
-**Date:** 2025-12-31 04:00  
-**Status:** Phase 5 Finalized | **Strategic Dashboard & Engine Ignition Active**  
-**Authoritative State:** Hardware-Optimized Engine Management Aligned to ZFS Memory Store.
+**Date:** 2025-12-31 04:30  
+**Status:** Phase 5 Finalized | **Strategic Dashboard Active**  
+**Authoritative State:** Command & Control Logic defined for Strategic GUI.
 
 ---
 
@@ -20,28 +20,31 @@
 
 ## **2. Build Progress (7D Agile)**
 
-### **✅ Phase 5: TUI Dashboard & Engine Ignition (DEVELOP)**
-- [x] **Strategic Dashboard**: Real-time TUI visualization with live cluster traffic log.
-- [x] **Engine Ignition**: One-click automation to launch `llama.cpp` backends with hardware-optimized flags (`-ngl`, `-fa`, `-c`).
-- [x] **CLI Entry**: `main.py` with `hub`, `engine`, and `war-room` commands fully functional.
-- [x] **ZFS Persistence**: Every message in the traffic log is committed to the HTPC ZFS store.
+### **✅ Phase 5: TUI Dashboard & Engine Ignition**
+- Real-time performance monitoring and automated hardware backend (llama.cpp) ignition.
 
-### **🔄 Phase 6: Strategic GUI (Next Focus)**
-- [ ] **React/Vite Infrastructure**: Modern web dashboard for the Commander's War Room.
-- [ ] **Real-time WebSockets**: Streaming node health and logs to the browser.
-- [ ] **Memory Browser**: Interactive navigation of the `MessageStore` message history.
-- [ ] **Config Overlord**: UI-based controls for role permissions and node settings.
+### **🔄 Phase 6: Strategic GUI — "The War Room" (DEVELOP)**
+*Objective: Transform the OS into a graphical Command & Control center.*
+
+- [x] **React/Vite Infrastructure**: Modern web dashboard foundation built with tactical design system.
+- [ ] **Backend Integration**: Connecting the GUI to the SystemManager REST API.
+- [ ] **Dynamic Hardware Dials**: Real-time adjustment of Context (`-c`) and NGL (`-ngl`) per node.
+- [ ] **Strategic Model Selector**: Remote file browser to locate and swap `.gguf` files in the `model_root_path`.
+- [ ] **Binary Authority Control**: Graphical selection/renaming of backend binaries (e.g., `go.exe` vs `llama-server.exe`).
+- [ ] **Cluster Heartbeat**: Live visualizations of node TPS load and availability.
+- [ ] **Intelligence Log**: Web-based stream of the HTPC MessageStore.
+- [ ] **One-Click Deployment**: Single "IGNITE ALL" button to spin up the entire cluster from the browser.
 
 ---
 
-## **3. Implementation Rules (The Commander Rule)**
-- **Binary Authority**: Use `go.exe` (Win) or `./go` (Linux) as specified per node.
-- **Hardware First**: Ensure `-ngl` and `-fa` are always pushed to the limit of the specific GPU.
-- **One-Click Only**: All complex subprocess management must be hidden from the user.
+## **3. Implementation Philosophy (The Commander Rule)**
+- **Robot Discipline**: The AI nodes are "robots" that follow the exact dials set by the Commander.
+- **Abstract the "Python Bullshit"**: The GUI should feel like a premium military-grade interface, hiding all code/terminal mess.
+- **Speed First**: Initial focus on `llama-cpp` bare-metal performance.
 
 ---
 
 ## **4. Consistency Checklist**
-- [x] **Git Commit**: Hardware engine ignition and log streaming logic.
+- [x] **Git Commit**: Metadata/Hardware ignition logic.
 - [x] **Tests**: 72 tests passing (100% green).
-- [x] **Nomenclature**: Aligned to Hub/Engine/War-Room strategic terms.
+- [x] **Nomenclature**: Hub, Engine, War-Room, Ignite.
