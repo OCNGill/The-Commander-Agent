@@ -1,0 +1,51 @@
+%% Version: 1.0.0
+%% Source: role_architecture.mmd
+%%
+%% Role-Based Model Architecture (class diagram)
+classDiagram
+    %% Direction for readability
+    direction LR
+
+    class Commander {
+        +assignTask(taskId)
+        +collectResponses()
+        +synthesize()
+        +log()
+    }
+
+    class Architect {
+        +decompose(task)
+        +plan()
+    }
+
+    class Coder {
+        +generateCode(spec)
+        +produceSchemas()
+    }
+
+    class Reasoner {
+        +analyzeEdgeCases()
+        +validateLogic()
+    }
+
+    class Synthesizer {
+        +mergeOutputs()
+        +polishResult()
+    }
+
+    %% Relationships
+    Commander --> Architect : assigns
+    Commander --> Coder : assigns
+    Commander --> Reasoner : assigns
+    Commander --> Synthesizer : assigns
+
+    Architect --|> Coder : provides_spec
+    Architect --|> Reasoner : requests_analysis
+    Coder --> Synthesizer : delivers_artifact
+    Reasoner --> Synthesizer : delivers_findings
+
+    %% Notes
+    note for Architect "Decomposes tasks; defines structure; proposes system-level plans"
+    note for Coder "Generates implementation details, schemas, and executable code"
+    note for Reasoner "Explores edge cases and validates logic"
+    note for Synthesizer "Merges outputs into final coherent result"

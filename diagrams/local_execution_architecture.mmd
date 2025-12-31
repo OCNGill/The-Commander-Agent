@@ -1,0 +1,24 @@
+%% Local-Only Execution Architecture (flowchart with subgraph)
+flowchart TB
+        subgraph cluster[Local AMD GPU Cluster]
+            direction TB
+            commander[Commander Orchestrator]
+            node1[Node 1 - Model A]
+            node2[Node 2 - Model B]
+            node3[Node 3 - Model C]
+            node4[Node 4 - Model D]
+            storage[Logs & Traceability]
+        end
+
+        commander --> node1
+        commander --> node2
+        commander --> node3
+        commander --> node4
+
+        node1 --> storage
+        node2 --> storage
+        node3 --> storage
+        node4 --> storage
+
+        %% Local-only boundary
+        LocalPolicy([Local-only Policy]) -.-> cluster

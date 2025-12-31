@@ -1,0 +1,34 @@
+%% 7D Agile Integration (flowchart)
+flowchart LR
+    DEFINE --> DESIGN
+    DESIGN --> DEVELOP
+    DEVELOP --> DEBUG
+    DEBUG --> DOCUMENT
+    DOCUMENT --> DELIVER
+    DELIVER --> DEPLOY
+
+    subgraph stages [7D Agile Stages]
+      DEFINE
+      DESIGN
+      DEVELOP
+      DEBUG
+      DOCUMENT
+      DELIVER
+      DEPLOY
+    end
+
+    %% Human checkpoints
+    DEFINE -.->|Human Checkpoint| DESIGN
+    DESIGN -.->|Human Checkpoint| DEVELOP
+    DEVELOP -.->|Human Checkpoint| DEBUG
+    DEBUG -.->|Human Checkpoint| DOCUMENT
+    DOCUMENT -.->|Human Checkpoint| DELIVER
+    DELIVER -.->|Human Checkpoint| DEPLOY
+
+    %% Commander responsibilities overlay
+    Commander([Commander]):::comm
+    Commander --> DEFINE
+    Commander --> DEVELOP
+    Commander --> DELIVER
+
+    classDef comm fill:#e6f7ff,stroke:#0099cc

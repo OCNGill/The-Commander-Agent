@@ -1,0 +1,18 @@
+%% Orchestration Loop (flowchart)
+flowchart TB
+    %% Top-down orchestration loop
+    Start([Task Intake]) --> Decompose{Decompose & Validate}
+    Decompose --> Distribute[Broadcast Master Prompt + Role Context]
+    Distribute --> Collect[Collect Role-Aligned Responses]
+    Collect --> Conflict{Conflict?}
+    Conflict -- Yes --> Resolve[Apply heuristics or escalate to human]
+    Conflict -- No --> Synthesize[Synthesize Outputs]
+    Resolve --> Synthesize
+    Synthesize --> Validate{Validation OK?}
+    Validate -- Yes --> Output[[Final Deliverable]]
+    Validate -- No --> Iterate[Return to Distribute for next iteration]
+    Output --> Log[(Traceability Log)]
+    Log --> End([Complete/Repeat])
+
+    classDef critical fill:#ffe6e6,stroke:#cc0000
+    class Conflict,Resolve critical

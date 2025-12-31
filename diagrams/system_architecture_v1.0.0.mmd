@@ -1,0 +1,38 @@
+%% Version: 1.0.0
+%% Source: (new) system_architecture_v1.0.0.mmd
+%% Simple block-level system architecture diagram (local-only)
+
+flowchart LR
+  %% Local cluster with core components
+  subgraph LocalCluster[Local AMD GPU Cluster]
+    direction TB
+    User[User / Client]
+    Commander[Commander Orchestrator]
+
+    subgraph Models[Model Nodes]
+      direction LR
+      Architect[Architect Model]
+      Coder[Coder Model]
+      Reasoner[Reasoner Model]
+      Synthesizer[Synthesizer Model]
+    end
+
+    Storage[Logs & Traceability]
+  end
+
+  %% Primary flows
+  User --> Commander
+  Commander --> Architect
+  Commander --> Coder
+  Commander --> Reasoner
+  Commander --> Synthesizer
+
+  %% Artifacts & telemetry
+  Architect --> Storage
+  Coder --> Storage
+  Reasoner --> Storage
+  Synthesizer --> Storage
+  Commander --> Storage
+
+  %% Note about local-only operation
+  LocalPolicy([Local-only: No cloud inference])-.->LocalCluster

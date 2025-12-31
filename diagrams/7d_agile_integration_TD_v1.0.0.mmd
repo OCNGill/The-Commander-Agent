@@ -1,0 +1,41 @@
+%% Version: 1.0.0
+%% Source: 7d_agile_integration_TD.mmd
+%%
+%% 7D Agile Integration - Top-Down (flowchart)
+%% Increase spacing between nodes using Mermaid init config
+%%{init: {"flowchart": {"nodeSpacing": 70, "rankSpacing": 160}} }%%
+flowchart TD
+  %% Top-down arrangement (flipped back upright) with extra spacing
+
+  Commander([Commander]):::comm
+
+  DEFINE[[DEFINE\nRequirements & Role Assignment]]
+  DESIGN[[DESIGN\nArchitecture & Message Schemas]]
+  DEVELOP[[DEVELOP\nPrompts & Orchestration Loop]]
+  DEBUG[[DEBUG\nTesting, Conflicts, Traceability]]
+  DOCUMENT[[DOCUMENT\nProcess Guides & API Specs]]
+  DELIVER[[DELIVER\nRelease Artifacts & Traceability]]
+  DEPLOY[[DEPLOY\nMulti-node Deployment Checklist]]
+
+  Commander --> DEFINE
+  DEFINE --> DESIGN
+  DESIGN --> DEVELOP
+  DEVELOP --> DEBUG
+  DEBUG --> DOCUMENT
+  DOCUMENT --> DELIVER
+  DELIVER --> DEPLOY
+
+  %% Human checkpoints as side notes connected with dotted lines
+  HumanCheck1([Human Checkpoint])-.->DEFINE
+  HumanCheck2([Human Checkpoint])-.->DESIGN
+  HumanCheck3([Human Checkpoint])-.->DEVELOP
+  HumanCheck4([Human Checkpoint])-.->DEBUG
+  HumanCheck5([Human Checkpoint])-.->DOCUMENT
+  HumanCheck6([Human Checkpoint])-.->DELIVER
+
+  %% Commander responsibilities overlay (links to key stages)
+  Commander -.-> DEVELOP
+  Commander -.-> DELIVER
+
+  classDef comm fill:#e6f7ff,stroke:#0099cc
+  class Commander comm
