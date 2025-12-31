@@ -1,0 +1,36 @@
+%% Version: 1.2.15 (Ignition Sequence HUD Flow)
+%% Visualization of the One-Click Deployment Protocol
+
+sequenceDiagram
+    participant User as Commander (GUI)
+    participant REST as Hub API (REST)
+    participant Broadcaster as WebSocket Broadcaster
+    participant SysMgr as System Manager (Local)
+    participant Engine as Hardware Engine (llama-cpp)
+    participant Relay as Cluster Relay (HTPC)
+
+    Note over User, Relay: ONE-CLICK IGNITE ENGAGED
+    User->>REST: POST /system/start
+    REST->>SysMgr: bootstrap()
+    SysMgr->>Broadcaster: Broadcast "starting"
+    Broadcaster-->>User: Engage Deployment HUD Overlay
+
+    rect rgb(0, 40, 60)
+        Note right of SysMgr: Step 1: Hardware Ignition
+        SysMgr->>Engine: Spawn Process (binary, ctx, ngl, fa)
+        Engine-->>SysMgr: Heartbeat READY
+    end
+
+    rect rgb(0, 60, 40)
+        Note right of SysMgr: Step 2: Establish Fabric
+        SysMgr->>Relay: Ignite Cluster Relay
+        Relay-->>SysMgr: Online
+    end
+
+    rect rgb(40, 40, 40)
+        Note right of SysMgr: Step 3: Global Snapshot
+        SysMgr->>Broadcaster: Broadcast "running"
+        Broadcaster-->>User: Transition HUD -> ARMED & ACTIVE
+    end
+
+    Note over User, Relay: CLUSTER READY FOR INFERENCE

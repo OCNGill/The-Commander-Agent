@@ -1,52 +1,41 @@
-# The-Commander: AI Agent Operating System (v1.2.4)
+# The-Commander: AI Agent Operating System (v1.2.15)
 
-**The-Commander** is a distributed orchestrator for managing a cluster of heterogeneous AI agents. It centralizes state, memory, and task lifecycle management while allowing decentralized execution across specific compute nodes.
-
----
-
-## **Architectural Topology & Performance**
-
-The system is designed for a multi-node worker topology with a central storage and relay authority. Compute is weighted towards the high-performance Main and HTPC nodes.
-
-| Node | Physical Host | Hardware | Bench (t/s) | Model Root Path |
-|------|---------------|----------|-------------|-----------------|
-| **Main** | Gillsystems-Main | Radeon 7900XTX | **130** | `C:\Models\Working_Models\` |
-| **HTPC** | Gillsystems-HTPC | Radeon 7600 | **60** | `/home/gillsystems-htpc/Desktop/Models/` |
-| **SteamDeck** | Steam Deck | Custom APU | **30** | `/home/deck/Desktop/Models/` |
-| **Laptop** | Gillsystems-Laptop | Integrated | **9** | `C:\Users\Gillsystems Laptop\Desktop\Models\` |
-
-### **Authoritative Storage (ZFS)**
-The **Gillsystems-HTPC** node hosts the primary dataset used by the system:
-- **Mountpoint:** `/gillsystems_zfs_pool/AI_storage`
-- **Installation Root:** `/home/gillsystems-htpc/`
-- **Central Memory:** `commander_memory.db` (SQLite + GZIP)
+**The-Commander** is a distributed military-grade orchestrator for managing a cluster of heterogeneous AI agents. It centralizes state, memory, and task lifecycle management while allowing decentralized execution across specific compute nodes via "The War Room" GUI.
 
 ---
 
-## **The Commander Protocol Layer**
-
-Communication within the cluster is governed by the **Commander Protocol**, a strict message/task envelope system that prevents architectural drift.
-
-- **Standard Envelopes:** All traffic uses `MessageEnvelope` (UUID, Timestamp, Sender/Recipient, Task ID, Priority, GZIP Payload).
-- **Intelligent Routing:** Node selection is weighted by TPS benchmarks to maximize throughput.
-- **Relay Hub:** Centralized message processing and persistence on the HTPC node.
+## **Strategic Control: The War Room**
+The system now features a high-fidelity React-based Command & Control center:
+- **Real-time Heartbeat**: Zero-latency visualization of cluster TPS load and node availability.
+- **Dynamic Hardware Dials**: Hot-swap Context (`-c`) and NGL (`-ngl`) parameters for local or remote engines.
+- **Binary Authority**: Explicit control over backend binaries (e.g., `go.exe` vs `llama-server.exe`).
+- **One-Click Ignite**: Synchronized cluster-wide deployment with a high-fidelity progression HUD.
+- **Intelligence Stream**: Global search and multi-layer filtering of the HTPC MessageStore.
 
 ---
 
-## **Quick Start (War Room)**
+## **Architectural Topology**
+| Node ID | Physical Host | Hardware | Bench (t/s) | Model Configuration |
+| :--- | :--- | :--- | :--- | :--- |
+| **node-main** | Gillsystems-Main | Radeon 7900XTX | **130** | Qwen3-Coder-25B (131k ctx, 999 NGL) |
+| **node-htpc** | Gillsystems-HTPC | Radeon 7600 | **60** | Granite-4.0-h-tiny (114k ctx, 40 NGL) |
+| **node-steamdeck**| Steam Deck | Custom APU | **30** | Granite-4.0-h-tiny (21k ctx, 32 NGL) |
+| **node-laptop**| Gillsystems-Laptop| Integrated | **9** | Granite-4.0-h-tiny (21k ctx, 999 NGL) |
 
-1. **Start the Hub (HTPC):**
-   ```bash
-   python main.py hub --port 8001
+### **Authoritative Storage (ZFS/MessageStore)**
+- **Central Memory:** `commander_memory.db` (SQLite + SQLAlechemy + GZIP)
+- **Persistence Layer:** Gillsystems-HTPC ZFS pool for long-term intelligence storage.
+
+---
+
+## **Operation Protocols**
+
+1. **Ignite the Fabric:**
+   ```powershell
+   python main.py war-room-web
    ```
-2. **Start the Engine (Any Node):**
-   ```bash
-   python main.py engine --node node-main
-   ```
-3. **Launch the Dashboard:**
-   ```bash
-   python main.py war-room
-   ```
+2. **Access the Console:** Open browser to `http://localhost:5173`.
+3. **Command Deployment:** Select a node, adjust dials, specify model, and hit **IGNITE ALL**.
 
 ---
 
