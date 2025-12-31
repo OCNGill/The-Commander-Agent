@@ -8,7 +8,7 @@ Coordinating:
 - Node & Agent Managers
 - Relay Server
 
-Version: 1.1.0
+Version: 1.2.0 (Protocol Integrated)
 """
 
 import logging
@@ -30,24 +30,31 @@ class SystemManager:
     Top-level orchestrator for The-Commander Operating System.
     """
 
-    def __init__(self, config_dir: Optional[str] = None):
+    def __init__(self, config_dir: Optional[str] = None, local_node_id: str = "node-main"):
         """
         Initialize the System Manager.
         
         Args:
             config_dir: Optional path to configuration directory.
+            local_node_id: ID of the local node (e.g. 'node-main', 'node-htpc').
         """
+        self.local_node_id = local_node_id
+        
         # 1. Initialize Core Managers
         self.config_manager = ConfigManager(config_dir)
         self.state_manager = StateManager()
         
         # 2. Initialize Sub-Managers (they depend on config/state)
         self.node_manager = NodeManager(self.config_manager, self.state_manager)
-        self.agent_manager = AgentManager(self.config_manager, self.state_manager)
+        self.agent_manager = AgentManager(
+            self.config_manager, 
+            self.state_manager, 
+            local_node_id=self.local_node_id
+        )
         
         self.relay_process: Optional[subprocess.Popen] = None
         
-        logger.info("SystemManager initialized")
+        logger.info(f"SystemManager initialized for node: {self.local_node_id}")
 
     def bootstrap(self) -> bool:
         """
@@ -84,7 +91,6 @@ class SystemManager:
             
         try:
             # 2. Start Relay Server (Mock/Real logic here)
-            # In production, this might launch a subprocess or thread
             self._start_relay_server()
             
             # 3. Start Nodes
@@ -137,12 +143,7 @@ class SystemManager:
 
     def _start_relay_server(self):
         """Internal: Launch the relay server process."""
-        # For now, we simulate this or just log it. 
-        # In real impl, this would Popen 'python commander_os/network/relay.py'
         logger.info("Relay Server started (simulated)")
-        # TODO: Implement actual subprocess launch
-        # relay_script = Path(__file__).parent.parent / "network" / "relay_server.py"
-        # self.relay_process = subprocess.Popen([sys.executable, str(relay_script)]...)
 
     def _stop_relay_server(self):
         """Internal: Stop the relay server."""

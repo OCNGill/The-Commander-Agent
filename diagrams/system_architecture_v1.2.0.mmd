@@ -1,4 +1,4 @@
-%% Version: 1.2.0 (Aligned to Cluster Topology)
+%% Version: 1.2.1 (Authoritative Performance Mapping)
 %% Authoritative Architecture for Gillsystems Cluster
 
 flowchart TB
@@ -10,48 +10,41 @@ flowchart TB
         direction TB
         Commander[THE COMMANDER\nMeta-Orchestrator]
         SystemMgr[System Manager]
-        RestAPI[REST API Interface]
+        ComputeMain[Primary Compute\n130 t/s]
     end
 
-    subgraph StorageNode["HTPC (10.0.0.42:8001)"]
+    subgraph StorageNode["Gillsystems-HTPC (10.0.0.42:8001)"]
         direction TB
         Relay[Relay Server\nMessage Hub]
+        ComputeHTPC[Secondary Compute\n60 t/s]
         subgraph ZFS["ZFS Dataset: /gillsystems_zfs_pool/AI_storage"]
             direction LR
             Memory[(Persistent Memory\nSQLite DB)]
             LogStore[Logs & Traceability]
-            Artifacts[Artifact Registry]
-            Checkpoints[Model Checkpoints]
         end
     end
 
-    subgraph Workers["Worker Nodes (Decentralized Execution)"]
+    subgraph Workers["Tertiary Worker Nodes"]
         direction LR
-        Laptop["Laptop Node\n(10.0.0.93:8002)"]
-        SteamDeck["Steam Deck Node\n(10.0.0.139:8003)"]
+        Laptop["Laptop Node\n(10.0.0.93:8002)\n9 t/s"]
+        SteamDeck["Steam Deck Node\n(10.0.0.139:8003)\n30 t/s"]
     end
   end
 
   %% Data & Control Flows
-  User[User / Client] -->|Control Commands| RestAPI
-  RestAPI --> SystemMgr
-  SystemMgr --> Commander
-  
-  Commander -->|Assign Task| Relay
+  Commander -->|Orchestrate| Relay
+  Relay -->|Route Task| ComputeHTPC
   Relay -->|Route Task| Workers
   
-  Workers -->|Task Response| Relay
-  Relay -->|Store Message| Memory
-  Relay -->|Write Logs| LogStore
-  
-  Workers -.->|Read/Write Artifacts| Artifacts
-  Commander -.->|Inject Context| Memory
+  Workers -->|Response| Relay
+  Relay -->|Store| Memory
+  Relay -->|Log| LogStore
   
   %% Style
   classDef primary fill:#003366,color:#fff,stroke:#0099cc,stroke-width:2px;
   classDef storage fill:#006633,color:#fff,stroke:#00cc66,stroke-width:2px;
   classDef worker fill:#444,color:#fff,stroke:#999,stroke-width:1px;
   
-  class Commander,SystemMgr,RestAPI primary;
-  class Relay,Memory,LogStore,Artifacts,Checkpoints,ZFS storage;
+  class Commander,SystemMgr,ComputeMain primary;
+  class Relay,Memory,LogStore,ZFS,ComputeHTPC storage;
   class Laptop,SteamDeck worker;

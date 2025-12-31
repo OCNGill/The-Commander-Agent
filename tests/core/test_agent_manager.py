@@ -12,6 +12,7 @@ from unittest.mock import MagicMock, PropertyMock
 from commander_os.core.agent_manager import AgentManager
 from commander_os.core.config_manager import AgentConfig
 from commander_os.core.state import ComponentStatus
+from commander_os.core.protocol import TaskDefinition, MessageType
 
 class TestAgentManager:
     """Tests for the AgentManager class."""
@@ -21,9 +22,9 @@ class TestAgentManager:
         """Mock ConfigManager."""
         mock = MagicMock()
         
-        # Sample Agent Config
+        # Sample Agent Config - Aligned to node-main
         self.agent1 = AgentConfig(
-            id='agent-1', name='Agent 1', enabled=True, role='coder', node_id='node-local'
+            id='agent-1', name='Agent 1', enabled=True, role='coder', node_id='node-main'
         )
         self.agent_remote = AgentConfig(
             id='agent-remote', name='Remote', enabled=True, role='coder', node_id='node-remote'
@@ -43,12 +44,18 @@ class TestAgentManager:
     @pytest.fixture
     def mock_state(self):
         """Mock StateManager."""
-        return MagicMock()
+        mock = MagicMock()
+        # Mock get_agent to return an AgentState object
+        agent_state = MagicMock()
+        agent_state.status = ComponentStatus.READY
+        agent_state.role = 'coder'
+        mock.get_agent.return_value = agent_state
+        return mock
 
     @pytest.fixture
     def agent_manager(self, mock_config, mock_state):
         """Create AgentManager with mocks."""
-        return AgentManager(mock_config, mock_state)
+        return AgentManager(mock_config, mock_state, local_node_id="node-main")
 
     def test_start_all_agents(self, agent_manager, mock_state):
         """Test starting all local agents."""
@@ -56,7 +63,7 @@ class TestAgentManager:
         
         # Should register agent-1
         mock_state.register_agent.assert_called_with(
-            agent_id='agent-1', node_id='node-local', role='coder'
+            agent_id='agent-1', node_id='node-main', role='coder'
         )
         
         # Should update status to STARTING then READY
@@ -130,3 +137,26 @@ class TestAgentManager:
         
         assert len(agent_manager._processes) == 0
         mock_state.update_agent_status.assert_called_with('agent-1', ComponentStatus.OFFLINE)
+
+    def test_execute_task_protocol(self, agent_manager, mock_state):
+        """Test task execution returning protocol-compliant envelope."""
+        agent_manager.start_agent('agent-1')
+        
+        task = TaskDefinition(
+            title="Test Task",
+            description="A test problem",
+            assigned_to_role="coder"
+        )
+        
+        response = agent_manager.execute_task('agent-1', task)
+        
+        assert response.msg_type == MessageType.RESPONSE
+        assert response.recipient_id == "commander"
+        assert response.task_id == task.id
+        assert "data" in response.payload
+        assert response.payload["data"]["content"] == f"Execution result for task 'Test Task' by role coder."
+        assert response.payload["data"]["task_id"] == task.id
+        
+        # Status should have toggled to BUSY then READY
+        mock_state.update_agent_status.assert_any_call('agent-1', ComponentStatus.BUSY)
+        mock_state.update_agent_status.assert_any_call('agent-1', ComponentStatus.READY)

@@ -4,21 +4,21 @@
 
 ---
 
-## **Architectural Topology**
+## **Architectural Topology & Performance**
 
-The system is designed for a multi-node worker topology with a central storage and relay authority.
+The system is designed for a multi-node worker topology with a central storage and relay authority. Compute is weighted towards the high-performance Main and HTPC nodes.
 
-| Node | Network Address | Role | Description |
-|------|-----------------|------|-------------|
-| **Main** | `http://10.0.0.164:8000/` | Orchestrator | Runs The Commander; controls system/node/agent lifecycle. |
-| **HTPC** | `http://10.0.0.42:8001/` | Storage/Relay | Central dataset authority and message relay hub. |
-| **Laptop** | `http://10.0.0.93:8002/` | Worker | Worker node running model servers and agents. |
-| **SteamDeck** | `http://10.0.0.139:8003/` | Worker | Auxiliary worker node. |
+| Node | Network Address | Hardware | Benchmark (t/s) | Description |
+|------|-----------------|----------|-----------------|-------------|
+| **Main** | `http://10.0.0.164:8000/` | Radeon 7900XTX | **130** | Orchestrator (The Commander) + Heart of Compute. |
+| **HTPC** | `http://10.0.0.42:8001/` | Radeon 7600 | **60** | Central storage auth + Message Relay hub. |
+| **SteamDeck** | `http://10.0.0.139:8003/` | Custom APU | **30** | Tertiary Worker (Light Jobs). |
+| **Laptop** | `http://10.0.0.93:8002/` | Integrated | **9** | Tertiary Worker (Minimal Load). |
 
 ### **Authoritative Storage (ZFS)**
-The HTPC node hosts the only dataset used by the system:
+The **Gillsystems-HTPC** node (`gillsystems-htpc`) hosts the only dataset used by the system:
 - **Mountpoint:** `/gillsystems_zfs_pool/AI_storage`
-- **Structure:** `/logs`, `/artifacts`, `/checkpoints`, `/memory`, `/relay`, `/agents`.
+- **Installation Root:** `/home/gillsystems-htpc/`
 
 ---
 
@@ -26,7 +26,7 @@ The HTPC node hosts the only dataset used by the system:
 
 Communication within the cluster is governed by the **Commander Protocol**, a strict message/task envelope system that prevents architectural drift.
 
-- **The Commander:** The authoritative initializer and orchestrator meta-agent.
+- **The Commander:** The authoritative initializer and orchestrator meta-agent (Priority 0).
 - **Hierarchy:** Commander -> Architect -> Coder/Reasoner -> Synthesizer.
 - **Protocol Envelopes:** Every message is wrapped in a `MessageEnvelope` (UUID, Timestamp, Sender/Recipient, Task ID, Priority, Payload).
 
@@ -36,9 +36,9 @@ Communication within the cluster is governed by the **Commander Protocol**, a st
 
 The-Commander utilizes an extensible persistent memory system backed by SQLite via SQLAlchemy.
 
-- **Flexibility:** The schema includes a `metadata_json` column for storing arbitrary agent state or task context without requiring frequent migrations.
+- **Flexibility:** The schema includes a `metadata_json` column for storing arbitrary agent state or task context.
 - **Efficiency:** Message content is GZIP compressed at rest.
-- **Searchable:** Full indices on Task ID, Sender, and Content Hash (SHA-256) for deduplication.
+- **Searchable:** Full indices on Task ID, Sender, and Content Hash (SHA-256).
 
 ---
 
@@ -83,4 +83,4 @@ graph TD
    python -m pytest tests/ -v
    ```
 
-*Property of Gillsystems. Stay aligned.*
+*Property of Gillsystems. Alignment is Mandatory.*

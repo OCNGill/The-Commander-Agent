@@ -1,11 +1,11 @@
 # The-Commander: Relay Server Configuration
-# Static network topology - immutable during runtime
-# Version: 1.2.0 (Aligned to Cluster Topology)
+# Static network topology - aligned to Authoritative Benchmarks
+# Version: 1.2.1
 
 relay:
-  host: "10.0.0.42"  # HTPC acts as central relay
+  host: "10.0.0.42"  # Gillsystems-HTPC
   port: 8001
-  protocol: "http"   # Moving to HTTP based on node definitions
+  protocol: "http"
   heartbeat_interval: 5
   connection_timeout: 30
   storage_root: "/gillsystems_zfs_pool/AI_storage/relay"
@@ -17,24 +17,18 @@ nodes:
     port: 8000
     enabled: true
     max_agents: 10
-    roles: ["orchestrator", "commander"]
+    tps_benchmark: 130 # Radeon 7900XTX
+    roles: ["orchestrator", "commander", "heavy_compute"]
     
   - id: "node-htpc"
-    name: "HTPC"
+    name: "Gillsystems-HTPC"
     host: "10.0.0.42"
     port: 8001
     enabled: true
-    max_agents: 10
-    roles: ["storage", "memory", "relay"]
+    max_agents: 8
+    tps_benchmark: 60  # Radeon 7600
+    roles: ["storage", "memory", "relay", "worker"]
     storage_path: "/gillsystems_zfs_pool/AI_storage"
-
-  - id: "node-laptop"
-    name: "Laptop Node"
-    host: "10.0.0.93"
-    port: 8002
-    enabled: true
-    max_agents: 4
-    roles: ["worker"]
 
   - id: "node-steamdeck"
     name: "Steam Deck Node"
@@ -42,6 +36,16 @@ nodes:
     port: 8003
     enabled: true
     max_agents: 2
+    tps_benchmark: 30
+    roles: ["worker"]
+
+  - id: "node-laptop"
+    name: "Laptop Node"
+    host: "10.0.0.93"
+    port: 8002
+    enabled: true
+    max_agents: 2
+    tps_benchmark: 9
     roles: ["worker"]
 
 logging:
