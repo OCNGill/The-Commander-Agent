@@ -33,7 +33,7 @@
 - [x] **Strategic Model Selector**: Remote file browser to locate and swap `.gguf` files with dedicated FA (Flash Attention) toggle.
 - [x] **Binary Authority Control**: Graphical selection/renaming of backend binaries (e.g., `go.exe` vs `llama-server.exe`).
 - [x] **Cluster Heartbeat**: Live visualizations of node TPS load and availability with real-time heartbeat telemetry.
-- [ ] **Intelligence Log**: Web-based stream of the HTPC MessageStore.
+- [x] **Intelligence Log**: Web-based stream of the HTPC MessageStore with tactical search and multi-layer filtering.
 - [ ] **One-Click Deployment**: Single "IGNITE ALL" button to spin up the entire cluster from the browser.
 
 ---
