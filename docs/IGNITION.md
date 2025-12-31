@@ -1,5 +1,12 @@
 # Ignition & Deployment Protocols
 
+## **System Prerequisites (THE GOLDEN STANDARD)**
+To prevent binary incompatibility and dependency hell, this system **STRICTLY REQUIRES**:
+*   **Python**: v3.10.x (**Release 3.10.11 Recommended**)
+    *   *Note: Python 3.14+ is expressly FORBIDDEN due to lack of Rust binaries.*
+*   **Node.js**: v18+ LTS
+*   **OS**: Windows 10/11 x64
+
 ## **The Ignition Sequence**
 Starting a distributed cluster is complex. The-Commander simplifies this into a single authoritative "IGNITE ALL" command.
 

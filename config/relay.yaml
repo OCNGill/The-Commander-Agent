@@ -1,88 +1,88 @@
-# The-Commander: Relay Server Configuration
-# Static network topology - aligned to Authoritative Benchmarks
-# Version: 1.2.7 (Context Finalization)
-
 relay:
-  host: "10.0.0.42"  # Gillsystems-HTPC
+  host: 10.0.0.42
   port: 8001
-  protocol: "http"
+  protocol: http
   heartbeat_interval: 5
   connection_timeout: 30
-  storage_root: "/gillsystems_zfs_pool/AI_storage/relay"
-
+  storage_root: /gillsystems_zfs_pool/AI_storage/relay
 nodes:
-  - id: "node-main"
-    name: "Gillsystems-Main"
-    host: "10.0.0.164"
-    port: 8000
-    enabled: true
-    max_agents: 10
-    tps_benchmark: 130 # Radeon 7900XTX
-    roles: ["orchestrator", "commander", "heavy_compute"]
-    model_root_path: "C:\\Models\\Working_Models\\"
-    engine:
-      binary: "go.exe"
-      model_file: "120-tokes-awesome-Qwen3-Coder-REAP-25B-A3B.Q4_K_S.gguf"
-      ctx: 131072
-      ngl: 999
-      fa: true
-      extra_flags: ""
-    
-  - id: "node-htpc"
-    name: "Gillsystems-HTPC"
-    host: "10.0.0.42"
-    port: 8001
-    enabled: true
-    max_agents: 8
-    tps_benchmark: 60  # Radeon 7600
-    roles: ["storage", "memory", "relay", "worker"]
-    storage_path: "/gillsystems_zfs_pool/AI_storage"
-    model_root_path: "/home/gillsystems-htpc/Desktop/Models/"
-    engine:
-      binary: "./go"
-      model_file: "granite-4.0-h-tiny-UD-Q4_K_XL.gguf"
-      ctx: 114688
-      ngl: 40
-      fa: true
-      extra_flags: "--cache-type-k q4_0 --cache-type-v q4_0"
-
-  - id: "node-steamdeck"
-    name: "Steam Deck Node"
-    host: "10.0.0.139"
-    port: 8003
-    enabled: true
-    max_agents: 2
-    tps_benchmark: 30
-    roles: ["worker"]
-    model_root_path: "/home/deck/Desktop/Models/"
-    engine:
-      binary: "./go"
-      model_file: "granite-4.0-h-tiny-UD-Q4_K_XL.gguf"
-      ctx: 21844
-      ngl: 32
-      fa: true
-      extra_flags: ""
-
-  - id: "node-laptop"
-    name: "Laptop Node"
-    host: "10.0.0.93"
-    port: 8002
-    enabled: true
-    max_agents: 2
-    tps_benchmark: 9
-    roles: ["worker"]
-    model_root_path: "C:\\Users\\Gillsystems Laptop\\Desktop\\Models\\"
-    engine:
-      binary: "go.exe"
-      model_file: "granite-4.0-h-tiny-Q4_K_M.gguf"
-      ctx: 21844
-      ngl: 999
-      fa: true
-      extra_flags: ""
-
+- id: node-main
+  name: Gillsystems-Main
+  host: 10.0.0.164
+  port: 8000
+  enabled: true
+  max_agents: 10
+  tps_benchmark: 130
+  roles:
+  - orchestrator
+  - commander
+  - heavy_compute
+  model_root_path: C:\Models\Working_Models\
+  engine:
+    binary: go.exe
+    model_file: 120-tokes-awesome-Qwen3-Coder-REAP-25B-A3B.Q4_K_S.gguf
+    ctx: 131072
+    ngl: 999
+    fa: true
+    extra_flags: ''
+- id: node-htpc
+  name: Gillsystems-HTPC
+  host: 10.0.0.42
+  port: 8001
+  enabled: true
+  max_agents: 8
+  tps_benchmark: 60
+  roles:
+  - storage
+  - memory
+  - relay
+  - worker
+  storage_path: /gillsystems_zfs_pool/AI_storage
+  model_root_path: /home/gillsystems-htpc/Desktop/Models/
+  engine:
+    binary: ./go
+    model_file: granite-4.0-h-tiny-UD-Q4_K_XL.gguf
+    ctx: 114688
+    ngl: 40
+    fa: true
+    extra_flags: --cache-type-k q4_0 --cache-type-v q4_0
+- id: node-steamdeck
+  name: Steam Deck Node
+  host: 10.0.0.139
+  port: 8003
+  enabled: true
+  max_agents: 2
+  tps_benchmark: 30
+  roles:
+  - worker
+  model_root_path: /home/deck/Desktop/Models/
+  engine:
+    binary: ./go
+    model_file: granite-4.0-h-tiny-UD-Q4_K_XL.gguf
+    ctx: 21844
+    ngl: 32
+    fa: true
+    extra_flags: ''
+- id: node-laptop
+  name: Laptop Node
+  host: 10.0.0.93
+  port: 8002
+  enabled: true
+  max_agents: 2
+  tps_benchmark: 9
+  roles:
+  - worker
+  model_root_path: C:\Users\Gillsystems Laptop\Desktop\Models\
+  engine:
+    binary: go.exe
+    model_file: granite-4.0-h-tiny-Q4_K_M.gguf
+    ctx: 21844
+    ngl: 999
+    fa: true
+    extra_flags: ''
 logging:
-  level: "INFO"
-  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-  file: "/gillsystems_zfs_pool/AI_storage/logs/relay.log"
+  level: INFO
+  format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+  file: /gillsystems_zfs_pool/AI_storage/logs/relay.log
   max_size_mb: 50
   backup_count: 5

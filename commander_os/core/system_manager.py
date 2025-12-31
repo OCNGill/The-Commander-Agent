@@ -219,8 +219,37 @@ class SystemManager:
     def get_status_report(self) -> Dict[str, Any]:
         """
         Get a comprehensive system health report.
+        Merges live state with static configuration to ensure full visibility.
         """
-        return self.state_manager.get_full_snapshot()
+        snapshot = self.state_manager.get_full_snapshot()
+        
+        # Merge offline nodes from config into snapshot so UI sees everything
+        configured_nodes = self.config_manager.nodes
+        live_nodes = snapshot.get('nodes', {})
+        
+        for node_id, config in configured_nodes.items():
+            if node_id not in live_nodes:
+                 live_nodes[node_id] = {
+                    "node_id": node_id,
+                    "status": "offline",
+                    "role": "worker",
+                    "metrics": {"tps": 0.0, "load": 0.0},
+                    "name": config.name,
+                    # Add static config data needed for UI
+                    "tps_benchmark": config.tps_benchmark,
+                    "model_file": config.engine.model_file if config.engine else "",
+                    "ctx": config.engine.ctx if config.engine else 0,
+                    "ngl": config.engine.ngl if config.engine else 0,
+                    "fa": config.engine.fa if config.engine else False,
+                    "binary": config.engine.binary if config.engine else ""
+                 }
+            else:
+                # Enrich live node with static config name if missing
+                 if 'name' not in live_nodes[node_id]:
+                     live_nodes[node_id]['name'] = config.name
+
+        snapshot['nodes'] = live_nodes
+        return snapshot
 
     def _start_relay_server(self):
         """Internal: Launch the relay server process."""

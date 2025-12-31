@@ -1,52 +1,42 @@
-# User Guide: Operating The-Commander
+# User Guide & Troubleshooting
 
-## **1. Prerequisites**
-- **Hardware**: Individual nodes with AMD GPUs (Radeon 7000 series optimized).
-- **Software**: Python 3.10+, Node.js (for GUI development), `llama-cpp` binaries (e.g., `go.exe` or `llama-server.exe`).
-- **Network**: All nodes must be on the same local network with static IPs if possible.
+## **Prerequisites (The Golden Standard)**
+The **The-Commander** system requires a specific environment to function correctly, particularly to support the advanced AI binaries.
 
-## **2. Installation & Setup**
-1.  **Clone the Repository**:
-    ```bash
-    git clone https://github.com/OCNGill/The-Commander-Agent.git
-    cd The-Commander-Agent
-    ```
-2.  **Environment Setup**:
-    ```bash
-    python -m venv .venv
-    ./.venv/Scripts/activate
-    pip install -r requirements.txt
-    ```
-3.  **GUI Dependencies**:
-    ```bash
-    cd commander_os/interfaces/gui
-    npm install
-    ```
+*   **Operating System**: Windows 10 or 11 (64-bit).
+*   **Python**: **Version 3.10.x is MANDATORY**.
+    *   The system includes an auto-provisioner, but if that fails, you must install it manually.
+    *   **Download**: [Python 3.10.11 Installer](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
+    *   **Important**: During manual installation, verify the install path or ensure "Add Python to PATH" is checked.
+*   **Node.js**: Version 18+ (LTS).
 
-## **3. Launching The War Room**
-The War Room is the primary interface for cluster operations. To launch the full stack (REST Backend + React HUD):
-```powershell
-python main.py war-room-web
-```
-Access the console at: `http://localhost:5173`
+---
 
-## **4. The Ignition Protocol**
-1.  **Select Node**: Click on a node card in the left sidebar (e.g., `node-main`).
-2.  **Adjust Dials**:
-    - Set **Context Size** to fit your task requirements.
-    - Adjust **GPU Layers** to maximize VRAM utilization.
-    - Toggle **Flash Attention** for optimized kernels.
-3.  **Select Model**: Use the **Model Armory** dropdown to browse `.gguf` files detected on the node.
-4.  **Engage Ignition**: Click **IGNITE ALL**.
-    - Watch the **Deployment HUD** as it synchronizes the local engine and cluster relay.
-    - The status will transition from **OFFLINE** to **ARMED & ACTIVE**.
+## **Troubleshooting Ignition**
 
-## **5. Real-time Intelligence Monitoring**
-- **Heartbeat Stream**: Use the center table to monitor live TPS (Tokens Per Second) output.
-- **Intelligence Log**: Use the bottom panel to search through the cluster's memory store.
-- **Filtering**: Click the **Filter** icon to isolate traffic by role (e.g., "SENTINEL") or specific agents.
+### **Issue: "Auto-provisioning failed" or Python not found**
+If the automated script fails to install Python 3.10 automatically (often due to permissions or complex usernames with spaces):
 
-## **6. Troubleshooting**
-- **Engine Failure**: If a node fails to ignite, check the **Intelligence Log** for backend CLI errors.
-- **Connection Lost**: Ensure the `host` and `port` settings in `config/relay.yaml` match the local IP of the node-hub.
-- **Slow Inference**: Check if GPU layers are correctly offloaded. The **Load** metric in the telemetry strip should reflect GPU activity.
+1.  **Manual Install**:
+    *   Download the installer from the link above.
+    *   Run it. Select **"Install Now"** (not custom) or ensure you know the path.
+    *   **Critical**: Check the box **"Add Python 3.10 to PATH"** at the bottom of the first screen.
+
+2.  **Manual Override**:
+    *   If you have Python installed in a non-standard location, you can edit `The_Commander.bat`.
+    *   Find the line: `set "TARGET_PYTHON=py -3.10"`
+    *   Change it to your path: `set "TARGET_PYTHON="C:\Path\To\Your\python.exe""`
+
+### **Issue: "Hub is unreachable"**
+*   **Check Port 8000**: Ensure no other service is using port 8000.
+*   **Firewall**: Allow `python.exe` through the Windows Firewall if prompted.
+*   **Logs**: Check the `COMMANDER_BACKEND` console window for specific error messages.
+
+---
+
+## **The "7D" Workflow**
+1.  **Discovery**: Review `PRODUCT_DESCRIPTION_MVP1.0.md` to understand goals.
+2.  **Design**: Check `system_architecture_v1.2.0.mmd` for topology.
+3.  **Development**: Code in `commander_os/`.
+4.  **Deployment**: Use `The_Commander.bat` to ignite.
+5.  **Documentation**: Keep this guide updated.

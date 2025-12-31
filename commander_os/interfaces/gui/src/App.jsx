@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, Database, Shield, Zap, Cpu, Activity, Settings, RefreshCw, Power } from 'lucide-react';
+import { Terminal, Database, Shield, Zap, Cpu, Activity, Settings, RefreshCw, Power, Layout } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from './api/commander-api';
 import TerminalLog from './components/TerminalLog';
@@ -13,8 +13,9 @@ function App() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [traffic, setTraffic] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dials, setDials] = useState({ ctx: 4096, ngl: 32, fa: true, binary: 'go.exe' });
+  const [dials, setDials] = useState({ ctx: 4096, ngl: 32, fa: true, binary: 'go.exe', model_file: '' });
   const [availableModels, setAvailableModels] = useState([]);
+  const [apiError, setApiError] = useState(null);
   const selectedNodeRef = React.useRef(null);
 
   const handleSelectNode = (node) => {
@@ -35,6 +36,7 @@ function App() {
         setTraffic(logs);
       } catch (err) {
         console.error("Initial fetch failed:", err);
+        setApiError("STRATEGIC LINK FAILURE: THE HUB IS UNREACHABLE");
       } finally {
         setLoading(false); // Ensure loading is set to false after initial fetch
       }
@@ -46,13 +48,13 @@ function App() {
         const snapshot = packet.data;
         setSystemStatus(snapshot.system.status);
 
+        // INTELLIGENT NODE MERGE: Ensure we capture NEW nodes from the snapshot
         setNodes(prev => {
-          return prev.map(n => {
-            const match = Object.values(snapshot.nodes).find(sn => sn.node_id === n.node_id);
-            if (match) {
-              return { ...n, ...match, status: match.status };
-            }
-            return n;
+          const snapshotNodes = Object.values(snapshot.nodes);
+          // We map over the SNAPSHOT (Source of Truth), merging any local UI state from 'prev'
+          return snapshotNodes.map(sn => {
+            const existing = prev.find(p => p.node_id === sn.node_id);
+            return existing ? { ...existing, ...sn } : sn;
           });
         });
 
@@ -90,7 +92,7 @@ function App() {
         .then(setAvailableModels)
         .catch(err => console.error("Failed to load models for node:", err));
     }
-  }, [selectedNode]);
+  }, [selectedNode?.node_id]);
 
   const handleIgnite = async () => {
     try {
@@ -101,6 +103,25 @@ function App() {
       }
     } catch (err) {
       alert("Ignition sequence failure: " + err.message);
+    }
+  };
+
+  const handleShutdown = async () => {
+    if (confirm("WARNING: This will kill all agents and nodes. Proceed?")) {
+      try {
+        await api.stopSystem();
+      } catch (err) {
+        alert("Shutdown failed: " + err.message);
+      }
+    }
+  };
+
+  const handleStopNode = async () => {
+    if (!selectedNode) return;
+    try {
+      await api.stopNode(selectedNode.node_id);
+    } catch (err) {
+      alert("Failed to stop node: " + err.message);
     }
   };
 
@@ -128,6 +149,14 @@ function App() {
         )}
       </AnimatePresence>
 
+      {apiError && (
+        <div className="api-error-alert">
+          <Zap size={16} />
+          <span>{apiError} (Port 8000)</span>
+          <button onClick={() => window.location.reload()}>RE-INITIALIZE</button>
+        </div>
+      )}
+
       {/* Strategic Header */}
       <header className="strategic-header">
         <div className="logo-section">
@@ -143,6 +172,13 @@ function App() {
             <Activity size={18} color={systemStatus === 'running' ? 'var(--success)' : 'var(--warning)'} />
             <span>{systemStatus === 'running' ? 'CLUSTER ONLINE' : systemStatus === 'starting' ? 'BOOTING PROTOCOLS' : 'OFFLINE'}</span>
           </div>
+
+          {isIgnited && (
+            <button className="shutdown-button" onClick={handleShutdown}>
+              <Power size={18} /> SHUTDOWN SYSTEM
+            </button>
+          )}
+
           <button
             className={`ignite-button ${isIgnited ? 'active' : ''} ${systemStatus === 'starting' ? 'starting' : ''}`}
             onClick={handleIgnite}
@@ -176,11 +212,11 @@ function App() {
                   </div>
                   <div className="node-hardware">
                     <Cpu size={14} />
-                    <span>{node.metrics?.tps?.toFixed(1) || '0.0'} TPS // {node.tps_benchmark || 0} MAX</span>
+                    <span>{(node.metrics?.tps || 0).toFixed(1)} TPS // {node.tps_benchmark || 0} MAX</span>
                   </div>
                 </div>
                 <div className="node-gauge">
-                  <div className={`gauge-fill ${node.status}`} style={{ width: `${Math.min(100, (node.metrics?.tps / (node.tps_benchmark || 100)) * 100)}%` }}></div>
+                  <div className={`gauge-fill ${node.status}`} style={{ width: `${Math.min(100, ((node.metrics?.tps || 0) / (node.tps_benchmark || 100)) * 100)}%` }}></div>
                 </div>
               </motion.div>
             ))}
@@ -201,6 +237,9 @@ function App() {
               >
                 <div className="panel-header strategic-border">
                   <h3>NODE CONTROL: {selectedNode.name || selectedNode.node_id}</h3>
+                  {selectedNode.status === 'online' && (
+                    <button className="node-stop-btn" onClick={handleStopNode}>STOP NODE</button>
+                  )}
                 </div>
 
                 <div className="telemetry-strip">
@@ -269,15 +308,11 @@ function App() {
                       <Database size={18} />
                       <select
                         className="strategic-select"
-                        value={selectedNode.model_file}
-                        onChange={(e) => {
-                          const newModel = e.target.value;
-                          const updatedNode = { ...selectedNode, model_file: newModel };
-                          setSelectedNode(updatedNode);
-                        }}
+                        value={dials.model_file}
+                        onChange={(e) => setDials({ ...dials, model_file: e.target.value })}
                       >
-                        <option value={selectedNode.model_file}>{selectedNode.model_file}</option>
-                        {availableModels.filter(m => m !== selectedNode.model_file).map(m => (
+                        <option value={dials.model_file}>{dials.model_file}</option>
+                        {availableModels.filter(m => m !== dials.model_file).map(m => (
                           <option key={m} value={m}>{m}</option>
                         ))}
                       </select>
@@ -306,7 +341,7 @@ function App() {
           <span>ZFS POOL: ONLINE // /gillsystems_zfs_pool/AI_storage</span>
         </div>
         <div className="version-info">
-          v1.2.8 // GILLSYSTEMS STRATEGIC INTEL
+          v1.2.17 // GILLSYSTEMS STRATEGIC INTEL
         </div>
       </footer>
     </div>

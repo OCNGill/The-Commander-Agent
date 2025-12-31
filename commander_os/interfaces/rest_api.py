@@ -76,6 +76,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+async def health_check():
+    """Tactical health check for port verification."""
+    return {"status": "online", "system": "The-Commander OS"}
+
 # -------------------------------------------------------------------------
 # WebSocket Connection Manager
 # -------------------------------------------------------------------------
@@ -224,24 +229,39 @@ async def list_nodes():
         raise HTTPException(status_code=503, detail="System not initialized")
 
     nodes = []
-    for node_state in system.state_manager.get_all_nodes():
-        node_id = node_state.node_id
-        config = system.config_manager.get_node(node_id)
+    nodes = []
+    # Iterate all CONFIGURED nodes (Topology Source of Truth)
+    for node_id, config in system.config_manager.nodes.items():
+        # Get live state if available
+        node_state = system.state_manager.get_node(node_id)
         
-        node_data = node_state.to_dict()
-        if config:
-            # Add static metadata for the GUI
-            node_data['name'] = config.name
-            node_data['tps_benchmark'] = config.tps_benchmark
-            if config.engine:
-                node_data['model_file'] = config.engine.model_file
-                node_data['ctx'] = config.engine.ctx
-                node_data['ngl'] = config.engine.ngl
-                node_data['fa'] = config.engine.fa
-                node_data['binary'] = config.engine.binary
-                
-        # Add live metrics from StateManager
-        node_data['metrics'] = node_state.metrics
+        if node_state:
+            node_data = node_state.to_dict()
+        else:
+            # Fallback for offline nodes not yet registered
+            node_data = {
+                "node_id": node_id,
+                "status": "offline",
+                "address": f"{config.host}:{config.port}",
+                "role": "worker",
+                "registration_time": 0,
+                "last_heartbeat": 0,
+                "metrics": {"tps": 0.0, "load": 0.0, "memory": 0.0}
+            }
+
+        # Add static metadata from config
+        node_data['name'] = config.name
+        node_data['tps_benchmark'] = config.tps_benchmark
+        if config.engine:
+            node_data['model_file'] = config.engine.model_file
+            node_data['ctx'] = config.engine.ctx
+            node_data['ngl'] = config.engine.ngl
+            node_data['fa'] = config.engine.fa
+            node_data['binary'] = config.engine.binary
+            
+        # Ensure metrics exist if state was partial
+        if 'metrics' not in node_data or not node_data['metrics']:
+             node_data['metrics'] = {"tps": 0.0, "load": 0.0, "memory": 0.0}
                 
         nodes.append(node_data)
     return nodes

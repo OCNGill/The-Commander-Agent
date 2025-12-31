@@ -1,16 +1,17 @@
-# The-Commander: AI Agent Operating System (v1.2.15)
+## **System Requirements (GOLDEN STANDARD)**
 
-**The-Commander** is a distributed military-grade orchestrator for managing a cluster of heterogeneous AI agents. It centralizes state, memory, and task lifecycle management while allowing decentralized execution across specific compute nodes via "The War Room" GUI.
+*   **OS**: Windows 10/11 (High Performance Mode)
+*   **Python**: **v3.10 ONLY** (Strict Requirement for AI Binaries)
+    *   *Warning: Python 3.14 is NOT supported and will cause build failures.*
+*   **Node.js**: v18+ (LTS Recommended)
+*   **GPU**: AMD Radeon 7000 Series (Optional, for Local LLM)
 
----
+## **Quick Start**
 
-## **Strategic Control: The War Room**
-The system now features a high-fidelity React-based Command & Control center:
-- **Real-time Heartbeat**: Zero-latency visualization of cluster TPS load and node availability.
-- **Dynamic Hardware Dials**: Hot-swap Context (`-c`) and NGL (`-ngl`) parameters for local or remote engines.
-- **Binary Authority**: Explicit control over backend binaries (e.g., `go.exe` vs `llama-server.exe`).
-- **One-Click Ignite**: Synchronized cluster-wide deployment with a high-fidelity progression HUD.
-- **Intelligence Stream**: Global search and multi-layer filtering of the HTPC MessageStore.
+1.  **Clone**: `git clone https://github.com/OCNGill/The-Commander-Agent.git`
+2.  **Ignite**: Run `The_Commander.bat`
+    *   *Note: The script will enforce Python 3.10 usage.*
+3.  **Command**: Access the dashboard at `http://localhost:5173`
 
 ---
 
@@ -21,22 +22,3 @@ The system now features a high-fidelity React-based Command & Control center:
 | **node-htpc** | Gillsystems-HTPC | Radeon 7600 | **60** | Granite-4.0-h-tiny (114k ctx, 40 NGL) |
 | **node-steamdeck**| Steam Deck | Custom APU | **30** | Granite-4.0-h-tiny (21k ctx, 32 NGL) |
 | **node-laptop**| Gillsystems-Laptop| Integrated | **9** | Granite-4.0-h-tiny (21k ctx, 999 NGL) |
-
-### **Authoritative Storage (ZFS/MessageStore)**
-- **Central Memory:** `commander_memory.db` (SQLite + SQLAlechemy + GZIP)
-- **Persistence Layer:** Gillsystems-HTPC ZFS pool for long-term intelligence storage.
-
----
-
-## **Operation Protocols**
-
-1. **Ignite the Fabric:**
-   ```powershell
-   python main.py war-room-web
-   ```
-2. **Access the Console:** Open browser to `http://localhost:5173`.
-3. **Command Deployment:** Select a node, adjust dials, specify model, and hit **IGNITE ALL**.
-
----
-
-*Property of Gillsystems. 7D Agile methodology enforced. Alignment is Absolute.*
