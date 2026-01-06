@@ -143,7 +143,7 @@ def commander_gui_dashboard(host, port):
     click.echo(f"------------------------------------------------------------")
     click.echo(f"  IGNITING ORCHESTRATION HUB: http://{host}:{port}")
     click.echo(f"  IDENTITY: {os.environ.get('COMMANDER_NODE_ID')}")
-    click.echo(f"  VERSION: v1.2.19")
+    click.echo(f"  VERSION: v1.3.1")
     click.echo(f"------------------------------------------------------------")
     
     from commander_os.interfaces.rest_api import app

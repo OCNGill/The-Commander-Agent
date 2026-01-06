@@ -8,7 +8,7 @@ Coordinating:
 - Node & Agent Managers
 - Relay Server
 
-Version: 1.2.21 (Unified Memory Protocol)
+Version: 1.3.1 (Unified Memory Protocol)
 """
 
 import logging

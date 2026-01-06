@@ -1,8 +1,24 @@
 # **The-Commander: Distributed AI Orchestration System**
 
-**Version:** 1.2.21  
+**Version:** 1.3.1  
 **Status:** Unified Cluster Memory Convergence & Agent Foundations  
 **Next Release:** 1.5.0 (Autonomous Intelligence Era)
+
+---
+
+## **Maintenance & Troubleshooting**
+
+### **Clearing Ghost Processes**
+If you encounter `[Errno 98] Address already in use`, it means a previous instance of the Commander is still hanging in the background. Use the following tactical clearance scripts to reset your node's ports:
+
+*   **Linux / Steam Deck**:
+    ```bash
+    ./kill_all_active_port_stealers_for_your_node.sh
+    ```
+*   **Windows**:
+    ```batch
+    kill_all_active_port_stealers_for_your_node.bat
+    ```
 
 ---
 

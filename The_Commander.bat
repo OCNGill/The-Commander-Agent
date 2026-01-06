@@ -2,10 +2,10 @@
 SETLOCAL EnableDelayedExpansion
 chcp 65001 >nul
 
-title GILLSYSTEMS COMMANDER OS // UNIFIED CONSOLE [v1.2.19]
+title GILLSYSTEMS COMMANDER OS // UNIFIED CONSOLE [v1.3.1]
 echo.
 echo  ============================================================
-echo     GILLSYSTEMS COMMANDER OS: UNIFIED CONSOLE [v1.2.19]
+echo     GILLSYSTEMS COMMANDER OS: UNIFIED CONSOLE [v1.3.1]
 echo     PRIME DIRECTIVE: ALWAYS VERIFY REQUIREMENTS
 echo  ============================================================
 
