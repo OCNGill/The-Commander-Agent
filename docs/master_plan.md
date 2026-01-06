@@ -1,8 +1,8 @@
-# **Gillsystems Commander OS — Master Plan (v1.2.19)**
+# **Gillsystems Commander OS — Master Plan (v1.2.21)**
 
-**Date:** 2025-12-31  
-**Status:** Phase 6 Finalized | **Dependency Fabric Synchronized**  
-**Authoritative State:** Command & Control Logic defined for Strategic Dashboard.
+**Date:** 2026-01-06  
+**Status:** Phase 7 Initialized | **Unified Cluster Memory Convergence**  
+**Authoritative State:** Command & Control Logic extending to Cluster Worker autonomy.
 
 ---
 
@@ -40,14 +40,25 @@
 
 ---
 
-## **3. Implementation Philosophy (The Commander Rule)**
-- **Robot Discipline**: The AI nodes are "robots" that follow the exact dials set by the Commander.
-- **Abstract the "Python Bullshit"**: The GUI should feel like a premium military-grade interface, hiding all code/terminal mess.
-- **Speed First**: Initial focus on `llama-cpp` bare-metal performance.
+## **4. Future Phases (The Road to v1.5)**
+
+### **🔄 Phase 7: Unified Cluster Memory (ACTIVE)**
+- Canonical persistence moved to HTPC Relay server over ZFS.
+- Agents on all nodes report via standardized Relay protocol.
+
+### **🔄 Phase 8: Strategic Agent Mobilization**
+- Implementation of **The Commander** Meta-Agent in `commander_os/agents/commander/`.
+- Deployment of the **Gillsystems-Recruiter-Agent** as the first functional sub-agent.
+
+### **🔄 Phase 9: Tool Authority (MCP)**
+- Integration of Tool Access Layer for agents to interact with files/terminals.
+
+### **🔄 Phase 10: Cluster Synthesis**
+- v1.5 Release: High-fidelity multi-node project synthesis.
 
 ---
 
-## **4. Consistency Checklist**
+## **5. Consistency Checklist**
 - [x] **Git Commit**: Metadata/Hardware ignition logic.
 - [x] **Tests**: 72 tests passing (100% green).
 - [x] **Nomenclature**: Hub, Engine, Strategic Dashboard, Ignite.

@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI):
 # Initialize FastAPI
 app = FastAPI(
     title="Gillsystems Commander OS API",
-    version="1.2.19",
+    version="1.2.21",
     description="Control interface for Gillsystems Commander OS - AI Agent Operating System",
     lifespan=lifespan
 )
@@ -88,7 +88,7 @@ async def health_check():
 @app.get("/version")
 async def get_version():
     """Return system version for dynamic display."""
-    return {"version": "1.2.19", "system": "Gillsystems Commander OS"}
+    return {"version": "1.2.21", "system": "Gillsystems Commander OS"}
 
 # -------------------------------------------------------------------------
 # WebSocket Connection Manager

@@ -1,0 +1,60 @@
+%% Version: 1.2.21 (Unified Memory & Agent Integration)
+%% Authoritative Architecture for Gillsystems Cluster
+
+flowchart TB
+  %% Strategic Control Plane
+  subgraph UI["The War Room (Control Console)"]
+    direction LR
+    Dashboard[React Global Dashboard]
+    HUD[Deployment HUD]
+    Broadcaster((Tactical WebSocket))
+  end
+
+  subgraph Cluster["Commander Cluster Topology"]
+    direction TB
+    
+  subgraph MainNode["Global Hub (Gillsystems-Main)"]
+        direction TB
+        Commander[THE COMMANDER\nMeta-Agent]
+        REST[REST API Gateway]
+        ComputeMain[Primary Compute\n130 t/s]
+        SysMgr[System Manager]
+    end
+
+  subgraph StorageNode["Memory Authority (Gillsystems-HTPC)"]
+        direction TB
+        Relay[Relay Server\nZFS Storage Bridge]
+        ComputeHTPC[Inference Engine\n60 t/s]
+        Memory[(ZFS MessageStore\nCentralized SQL)]
+    end
+
+    subgraph WorkerNodes["Tactical Workers"]
+        direction TB
+        Laptop["Gillsystems-Laptop\nRecruiter Agent"]
+        SteamDeck["Gillsystems-Steam-Deck\nWorker Node"]
+    end
+  end
+
+  %% Data & Control Interaction
+  Dashboard <-->|REST/WS| REST
+  REST <-->|Sync State| SysMgr
+  SysMgr -->|Control| Commander
+  Commander <-->|Orchestrate| Relay
+  
+  Relay <-->|Sync Traffic| WorkerNodes
+  Relay <-->|Sync Traffic| ComputeHTPC
+  Relay <-->|Canonical Persist| Memory
+  
+  SysMgr ---->|Heartbeat| Broadcaster
+  Broadcaster -.->|Real-time Snapshot| Dashboard
+
+  %% Style
+  classDef strategic fill:#001a33,color:#00f2ff,stroke:#00f2ff,stroke-width:2px;
+  classDef primary fill:#003366,color:#fff,stroke:#0099cc,stroke-width:2px;
+  classDef storage fill:#006633,color:#fff,stroke:#00cc66,stroke-width:2px;
+  classDef worker fill:#222,color:#fff,stroke:#555,stroke-width:1px;
+  
+  class Dashboard,HUD,Broadcaster strategic;
+  class Commander,REST,ComputeMain,SysMgr primary;
+  class Relay,Memory,ComputeHTPC storage;
+  class Laptop,SteamDeck worker;
