@@ -5,6 +5,9 @@ relay:
   heartbeat_interval: 5
   connection_timeout: 30
   storage_root: /gillsystems_zfs_pool/AI_storage/relay
+  # Agent storage configuration
+  agent_storage_dir: /gillsystems_zfs_pool/AI_storage/agent_storage
+  enable_storage_sync: true
 nodes:
 - id: Gillsystems-Main
   name: Gillsystems-Main

@@ -1,0 +1,32 @@
+# Storage Configuration Example for Commander OS Agents
+
+# Local agent configuration (on each node)
+agent_storage:
+  # Local data directory (NVMe for performance)
+  local_data_dir: "./data/agents"
+  
+  # HTPC relay URL for network sync
+  htpc_url: "http://10.0.0.42:8001"
+  
+  # Enable HTPC synchronization
+  enable_htpc: true
+  
+  # Sync queue processing interval (seconds)
+  sync_interval: 60
+  
+  # Batch size for sync queue processing
+  sync_batch_size: 100
+  
+  # Maximum retry count for failed syncs
+  max_retry_count: 5
+
+# Per-agent storage overrides
+recruiter_agent:
+  storage_enabled: true
+  local_data_dir: "./data/agents/recruiter"
+  # Uses default HTPC URL and settings from agent_storage
+
+commander_agent:
+  storage_enabled: true
+  local_data_dir: "./data/agents/commander"
+  # Uses default HTPC URL and settings from agent_storage
