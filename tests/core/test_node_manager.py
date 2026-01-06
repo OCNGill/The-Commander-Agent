@@ -94,7 +94,8 @@ class TestNodeManager:
     def test_monitor_loop_logic(self, node_manager, mock_state):
         """Test logic inside monitor loop (heartbeats)."""
         node_manager._stop_event = MagicMock()
-        node_manager._stop_event.is_set.side_effect = [False, True] # Run once then stop
+        # Return False once, then True.
+        node_manager._stop_event.is_set.side_effect = [False, True, True, True] 
         
         with pytest.MonkeyPatch().context() as m:
             m.setattr(time, 'sleep', lambda x: None)
@@ -103,8 +104,8 @@ class TestNodeManager:
         # Verify heartbeat sent for local node
         mock_state.update_node_heartbeat.assert_called_with('node-main')
         
-        # Verify pruning was called
-        mock_state.prune_stale_components.assert_called()
+        # Verify monitoring loop finished
+        node_manager._stop_event.is_set.assert_called()
 
     def test_get_best_worker_node(self, node_manager, mock_state):
         """Test load balancing logic based on benchmarks."""

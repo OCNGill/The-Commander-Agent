@@ -79,6 +79,7 @@ class SystemManager:
             # 1. Load configurations
             if not self.config_manager.load_all():
                 logger.error("Failed to load configurations during bootstrap")
+                self.state_manager.set_system_status(SystemStatus.ERROR)
                 return False
             
             # 2. Register this node

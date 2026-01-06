@@ -73,6 +73,17 @@ class TestRestApi:
 
     def test_node_endpoints(self, mock_system):
         """Test node listing and control."""
+        # Setup mock return for nodes in config_manager
+        mock_config = MagicMock()
+        mock_config.host = 'localhost'
+        mock_config.port = 5556
+        mock_system.config_manager.nodes = {'node-1': mock_config}
+        
+        # Setup mock return for node state
+        mock_system.state_manager.get_node.return_value = NodeState(
+            node_id='node-1', hostname='localhost', port=5556, status=ComponentStatus.READY
+        )
+        
         # List
         r = client.get("/nodes")
         assert r.status_code == 200
