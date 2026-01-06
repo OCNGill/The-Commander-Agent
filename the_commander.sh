@@ -4,7 +4,7 @@
 
 echo -e "\n \e[1;34m############################################################\e[0m"
 echo -e " \e[1;34m##                                                        ##\e[0m"  
-echo -e " \e[1;34m##        🛡️  GILLSYSTEMS COMMANDER OS v1.2.19           ##\e[0m"  
+echo -e " \e[1;34m##        🛡️  GILLSYSTEMS COMMANDER OS v1.2.20           ##\e[0m"  
 echo -e " \e[1;34m##            STRATEGIC CLUSTER ORCHESTRATION             ##\e[0m"  
 echo -e " \e[1;34m##                                                        ##\e[0m"
 echo -e " \e[1;34m############################################################\e[0m\n"# 1. System Check

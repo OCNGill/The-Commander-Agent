@@ -1,6 +1,6 @@
 # **The-Commander: Distributed AI Orchestration System**
 
-**Version:** 1.2.19  
+**Version:** 1.2.20  
 **Status:** GUI Complete - Model Selection Working - Chat In Progress  
 **Next Release:** 1.3.0 (Multi-Node Chat Integration)
 
@@ -11,8 +11,27 @@
 *   **OS**: Windows 10/11 or Linux (Ubuntu 20.04+)
 *   **Python**: **v3.10 ONLY** (Strict Requirement)
     *   *Warning: Python 3.14+ will cause dependency failures*
-*   **Node.js**: v18+ (LTS Recommended)
+*   **Node.js**: v20+ (LTS Required for Vite compatibility)
 *   **GPU**: AMD Radeon 7000 Series (Optional, for Local LLM Acceleration)
+
+---
+
+## **Automated Setup (Recommended for Linux)**
+
+For automated installation of all dependencies (Python 3.10, Node.js 20+, npm, build tools):
+
+```bash
+cd The-Commander-Agent
+./scripts/linux_prereqs.sh
+```
+
+This script will:
+- Install Node.js 20+ (required for Vite frontend)
+- Ensure Python 3.10 is available (via pyenv if needed)
+- Create virtual environment and install Python dependencies
+- Validate all prerequisites before completion
+
+---
 
 ## **Quick Start (Single Node)**
 
@@ -24,10 +43,13 @@
 
 2.  **Install Dependencies**:
     ```bash
-    # Windows
+    # Automated (Linux) - Recommended
+    ./scripts/linux_prereqs.sh
+    
+    # Manual Windows
     py -3.10 -m pip install -r requirements.txt
     
-    # Linux
+    # Manual Linux
     python3.10 -m pip install -r requirements.txt
     ```
 
@@ -57,9 +79,14 @@ For complete model discovery and distributed orchestration across all nodes:
 
 2.  **Install Dependencies on Each Node**:
     ```bash
-    # Run on each node
-    py -3.10 -m pip install -r requirements.txt  # Windows
-    python3.10 -m pip install -r requirements.txt  # Linux
+    # Automated (Linux) - Recommended
+    ./scripts/linux_prereqs.sh
+    
+    # Manual Windows
+    py -3.10 -m pip install -r requirements.txt
+    
+    # Manual Linux
+    python3.10 -m pip install -r requirements.txt
     ```
 
 3.  **Verify Node Configuration**:
