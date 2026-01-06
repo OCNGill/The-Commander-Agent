@@ -3,6 +3,17 @@
 **Date:** January 6, 2026  
 **Issue Resolved:** File organization and naming conventions
 
+**Version:** 1.3.0
+
+---
+
+## Changelog
+
+### Version 1.3
+- Corrected file organization and naming conventions.
+- Introduced a two-tier storage architecture for generic and agent-specific layers.
+- Added Commander and Recruiter agent storage modules.
+
 ## The Problem
 
 Initially, agent-specific storage was placed in `commander_os/agents/recruiter/storage.py` with a generic name. This was confusing because:

@@ -120,3 +120,20 @@ For complete model discovery and distributed orchestration across all nodes:
 | **Gillsystems-HTPC** | Gillsystems-HTPC | Radeon 7600 | **60** | Granite-4.0-h-tiny (114k ctx, 40 NGL) |
 | **Gillsystems-Steam-Deck**| Gillsystems-Steam-Deck | Custom APU | **30** | Granite-4.0-h-tiny (21k ctx, 32 NGL) |
 | **Gillsystems-Laptop**| Gillsystems-Laptop| Integrated | **9** | Granite-4.0-h-tiny (21k ctx, 999 NGL) |
+
+---
+
+## **Changelog**
+
+### Version 1.3
+- Implemented the new storage framework for Commander OS.
+- Added agent-specific storage modules for Commander and Recruiter agents.
+- Updated documentation to reflect the new storage architecture.
+
+---
+
+## **Documentation Links**
+
+- [Storage System Implementation](docs/STORAGE_IMPLEMENTATION_COMPLETE.md)
+- [Storage Architecture](docs/STORAGE_ARCHITECTURE.md)
+- [Commander OS Agent Storage Info](docs/Commander_OS_agent_storage_info.md)

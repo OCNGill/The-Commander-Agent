@@ -2,7 +2,16 @@
 
 **Date:** January 6, 2026  
 **Status:** Fully Implemented  
-**Version:** 1.0.0
+**Version:** 1.3.0
+
+---
+
+## Changelog
+
+### Version 1.3
+- Fully implemented the Commander OS storage framework.
+- Added agent-specific storage modules for Commander and Recruiter agents.
+- Updated documentation to reflect the new storage architecture.
 
 ## Summary
 
