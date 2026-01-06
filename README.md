@@ -41,17 +41,18 @@ This script will:
     cd The-Commander-Agent
     ```
 
-2.  **Install Dependencies**:
+2.  **Install Dependencies (run the platform pre-req first)**:
     ```bash
-    # Automated (Linux) - Recommended
+    # Linux (recommended)
     ./scripts/linux_prereqs.sh
-    
-    # Manual Windows
-    py -3.10 -m pip install -r requirements.txt
-    
-    # Manual Linux
-    python3.10 -m pip install -r requirements.txt
+
+    # Windows (run as Administrator)
+    # From Explorer: Right-click `install_prereqs.bat` and choose "Run as administrator"
+    # Or in an elevated PowerShell prompt:
+    .\install_prereqs.bat
     ```
+
+    After the prereq installer finishes, continue with the launcher step below to start the Commander OS.
 
 3.  **Launch System**:
     ```bash
